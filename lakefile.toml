@@ -1,0 +1,11 @@
+name = "lean-eth-kzg"
+version = "0.1.0"
+defaultTargets = ["LeanEthKzg", "lean-eth-kzg"]
+
+[[lean_lib]]
+name = "LeanEthKzg"
+
+[[lean_exe]]
+name = "lean-eth-kzg"
+root = "Main"
+
