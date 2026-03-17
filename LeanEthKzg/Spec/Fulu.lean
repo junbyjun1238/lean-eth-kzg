@@ -68,23 +68,43 @@ def normalizeCellBatchInput (input : CellBatchInput) : DecodeResult NormalizedCe
     proofs
   }
 
-def cellBatchTranscript (input : NormalizedCellBatchInput) : TranscriptInput :=
-  let header := #[
+def cellBatchTranscriptHeader (input : NormalizedCellBatchInput) : Array Bytes :=
+  #[
     LeanEthKzg.natToFixedWidthBE 8 fieldElementsPerBlob,
     LeanEthKzg.natToFixedWidthBE 8 fieldElementsPerCell,
     LeanEthKzg.natToFixedWidthBE 8 input.uniqueCommitments.size,
     LeanEthKzg.natToFixedWidthBE 8 input.cellIndices.size
   ]
-  let withCommitments := input.uniqueCommitments.foldl (fun acc commitment => acc.push commitment) header
-  let messages :=
-    Id.run do
-      let mut acc := withCommitments
-      for i in [0:input.cellIndices.size] do
-        acc := acc.push (LeanEthKzg.natToFixedWidthBE 8 input.commitmentIndices[i]!.toNat)
-        acc := acc.push (LeanEthKzg.natToFixedWidthBE 8 input.cellIndices[i]!.toNat)
-        acc := acc.push input.cells[i]!
-        acc := acc.push input.proofs[i]!
-      return acc
-  transcript cellBatchChallengeDomain messages
+
+def cellBatchTranscriptEntryMessages (input : NormalizedCellBatchInput) : Array Bytes :=
+  Id.run do
+    let mut acc : Array Bytes := #[]
+    for i in [0:input.cellIndices.size] do
+      acc := acc.push (LeanEthKzg.natToFixedWidthBE 8 input.commitmentIndices[i]!.toNat)
+      acc := acc.push (LeanEthKzg.natToFixedWidthBE 8 input.cellIndices[i]!.toNat)
+      acc := acc.push input.cells[i]!
+      acc := acc.push input.proofs[i]!
+    return acc
+
+def cellBatchTranscriptMessages (input : NormalizedCellBatchInput) : Array Bytes :=
+  cellBatchTranscriptHeader input ++ input.uniqueCommitments ++ cellBatchTranscriptEntryMessages input
+
+def cellBatchTranscript (input : NormalizedCellBatchInput) : TranscriptInput :=
+  transcript cellBatchChallengeDomain (cellBatchTranscriptMessages input)
+
+theorem uniqueCommitment_mem_cellBatchTranscriptMessages
+    (input : NormalizedCellBatchInput)
+    {commitment : CommitmentBytes}
+    (h : commitment ∈ input.uniqueCommitments) :
+    commitment ∈ cellBatchTranscriptMessages input := by
+  unfold cellBatchTranscriptMessages
+  simp [h]
+
+theorem uniqueCommitment_mem_cellBatchTranscript
+    (input : NormalizedCellBatchInput)
+    {commitment : CommitmentBytes}
+    (h : commitment ∈ input.uniqueCommitments) :
+    commitment ∈ (cellBatchTranscript input).messages := by
+  simpa [cellBatchTranscript] using uniqueCommitment_mem_cellBatchTranscriptMessages input h
 
 end LeanEthKzg.Spec

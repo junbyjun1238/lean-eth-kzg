@@ -3,8 +3,8 @@ import LeanEthKzg.Spec.Types
 import LeanEthKzg.Spec.Deneb
 import LeanEthKzg.Spec.Fulu
 import LeanEthKzg.Verifier.API
+import LeanEthKzg.Verifier.Determinism
 import LeanEthKzg.Verifier.Batch
 import LeanEthKzg.Regression.Invariants
 import LeanEthKzg.Conformance.Targets
 import LeanEthKzg.Regression.Witnesses
-

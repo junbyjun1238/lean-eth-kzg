@@ -121,12 +121,23 @@ def blobProofTranscript (input : NormalizedBlobProofInput) : TranscriptInput :=
     input.proof
   ]
 
-def blobBatchTranscript (input : NormalizedBlobBatchInput) : TranscriptInput :=
+def blobBatchTranscriptMessages (input : NormalizedBlobBatchInput) : Array Bytes :=
   let count := LeanEthKzg.natToFixedWidthBE 8 input.entries.size
-  let messages :=
-    input.entries.foldl
-      (fun acc entry => acc.push entry.blob |>.push entry.commitment |>.push entry.proof)
-      #[count]
-  transcript "verify_blob_kzg_proof_batch" messages
+  input.entries.foldl
+    (fun acc entry => acc.push entry.blob |>.push entry.commitment |>.push entry.proof)
+    #[count]
+
+def blobBatchTranscript (input : NormalizedBlobBatchInput) : TranscriptInput :=
+  transcript "verify_blob_kzg_proof_batch" (blobBatchTranscriptMessages input)
+
+theorem blobBatchTranscriptMessages_singleton (input : NormalizedBlobProofInput) :
+    blobBatchTranscriptMessages input.toSingletonBatch =
+      #[
+        LeanEthKzg.natToFixedWidthBE 8 1,
+        input.blob,
+        input.commitment,
+        input.proof
+      ] := by
+  rfl
 
 end LeanEthKzg.Spec

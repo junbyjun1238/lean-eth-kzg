@@ -69,17 +69,29 @@ def verifyBlobKzgProof (backend : Backend) (input : BlobProofInput) :
   let transcript := blobProofTranscript normalized
   pure (toDecision (backend.verifyBlobKzgProof normalized), { transcript })
 
+def normalizeBlobBatchForVerification (input : BlobBatchInput) :
+    DecodeResult NormalizedBlobBatchInput := do
+  match input.asSingletonBlobProof? with
+  | some singleton =>
+      let single <- normalizeBlobProofInput singleton
+      pure single.toSingletonBatch
+  | none =>
+      normalizeBlobBatchInput input
+
 def verifyBlobKzgProofBatch (backend : Backend) (input : BlobBatchInput) :
     DecodeResult (Decision × NormalizationReport) := do
-  let normalized <-
-    match input.asSingletonBlobProof? with
-    | some singleton =>
-        let single <- normalizeBlobProofInput singleton
-        pure single.toSingletonBatch
-    | none =>
-        normalizeBlobBatchInput input
+  let normalized <- normalizeBlobBatchForVerification input
   let transcript := blobBatchTranscript normalized
   pure (toDecision (backend.verifyBlobKzgProofBatch normalized), { transcript })
+
+theorem normalizeBlobBatchForVerification_toSingletonBatch (input : BlobProofInput) :
+    normalizeBlobBatchForVerification input.toSingletonBatch =
+      match normalizeBlobProofInput input with
+      | .ok normalized => .ok normalized.toSingletonBatch
+      | .error err => .error err := by
+  unfold normalizeBlobBatchForVerification
+  simp [BlobBatchInput.asSingletonBlobProof?_toSingletonBatch]
+  cases hNorm : normalizeBlobProofInput input <;> rfl
 
 theorem verifyBlobKzgProof_singletonBatchConsistency
     (backend : Backend)
@@ -88,12 +100,12 @@ theorem verifyBlobKzgProof_singletonBatchConsistency
     verificationDecision (verifyBlobKzgProof backend input) =
       verificationDecision (verifyBlobKzgProofBatch backend input.toSingletonBatch) := by
   unfold verificationDecision verifyBlobKzgProof verifyBlobKzgProofBatch
-  simp [BlobBatchInput.asSingletonBlobProof?_toSingletonBatch]
+  rw [normalizeBlobBatchForVerification_toSingletonBatch]
   cases hNorm : normalizeBlobProofInput input with
   | error err =>
       rfl
   | ok normalized =>
-      simpa [hNorm] using congrArg toDecision (h normalized)
+      simpa using congrArg toDecision (h normalized)
 
 def verifyCellKzgProofBatch (backend : Backend) (input : CellBatchInput) :
     DecodeResult (Decision × NormalizationReport) := do
