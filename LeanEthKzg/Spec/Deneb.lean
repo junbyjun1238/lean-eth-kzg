@@ -44,6 +44,44 @@ structure NormalizedBlobBatchInput where
   entries : Array BlobBatchEntry
   deriving Repr, Inhabited
 
+def BlobProofInput.toSingletonBatch (input : BlobProofInput) : BlobBatchInput :=
+  {
+    blobs := #[input.blob]
+    commitments := #[input.commitment]
+    proofs := #[input.proof]
+  }
+
+def BlobBatchInput.asSingletonBlobProof? (input : BlobBatchInput) : Option BlobProofInput :=
+  if _ : input.blobs.size = 1 then
+    if _ : input.commitments.size = 1 then
+      if _ : input.proofs.size = 1 then
+        some {
+          blob := input.blobs[0]!
+          commitment := input.commitments[0]!
+          proof := input.proofs[0]!
+        }
+      else
+        none
+    else
+      none
+  else
+    none
+
+def NormalizedBlobProofInput.toBatchEntry (input : NormalizedBlobProofInput) : BlobBatchEntry :=
+  {
+    blob := input.blob
+    commitment := input.commitment
+    proof := input.proof
+  }
+
+def NormalizedBlobProofInput.toSingletonBatch (input : NormalizedBlobProofInput) :
+    NormalizedBlobBatchInput :=
+  { entries := #[input.toBatchEntry] }
+
+theorem BlobBatchInput.asSingletonBlobProof?_toSingletonBatch (input : BlobProofInput) :
+    input.toSingletonBatch.asSingletonBlobProof? = some input := by
+  simp [BlobBatchInput.asSingletonBlobProof?, BlobProofInput.toSingletonBatch]
+
 def normalizeKzgProofInput (input : KzgProofInput) : DecodeResult NormalizedKzgProofInput := do
   let commitment <- ensureLength "commitment" bytesPerCommitment input.commitment
   let evaluationPoint <- ensureLength "evaluation_point" bytesPerFieldElement input.evaluationPoint

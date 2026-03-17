@@ -21,4 +21,8 @@ theorem selectCellBatchPath_large (input : NormalizedCellBatchInput) (h : 8 <= i
   have hNot : ¬ input.cells.size < 8 := Nat.not_lt.mpr h
   simp [selectCellBatchPath, hNot]
 
+theorem singletonBlobBatchHasOneEntry (input : NormalizedBlobProofInput) :
+    input.toSingletonBatch.entries.size = 1 := by
+  rfl
+
 end LeanEthKzg.Verifier
