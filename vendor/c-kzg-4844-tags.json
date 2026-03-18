@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "repository": "ethereum/c-kzg-4844",
+  "tags": [
+    {
+      "tag": "v2.1.2",
+      "commit": "f516aee",
+      "historical_notes": [
+        "Baseline tag before the point-at-infinity fast-path fix described in later releases."
+      ],
+      "references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.2"
+      ]
+    },
+    {
+      "tag": "v2.1.3",
+      "commit": "936125d",
+      "historical_notes": [
+        "Fixes a verify_cell_kzg_proof_batch result bug tied to point-at-infinity handling in g1_lincomb_fast."
+      ],
+      "references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.3",
+        "https://github.com/ethereum/c-kzg-4844/pull/600"
+      ]
+    },
+    {
+      "tag": "v2.1.4",
+      "commit": "a679ae5",
+      "historical_notes": [
+        "Keeps the point-at-infinity mitigation but predates the deduplicated-commitment challenge fix.",
+        "This tag is the historical bad target for the draft dedupWeakFiatShamir witness family in this repo."
+      ],
+      "references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5"
+      ]
+    },
+    {
+      "tag": "v2.1.5",
+      "commit": "7043f4d",
+      "historical_notes": [
+        "Fixes the verify_cell_kzg_proof_batch challenge construction so all deduplicated commitments are bound."
+      ],
+      "references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5",
+        "https://github.com/ethereum/c-kzg-4844/pull/607"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "id": "blob_batch_vector_length_mismatch",
+  "status": "active",
+  "source": "adversarial",
+  "api": "verify_blob_kzg_proof_batch",
+  "family": "malformedBytes",
+  "bug_class": null,
+  "invariants": [
+    "invalidInputDeterminism"
+  ],
+  "summary": "A blob batch with fewer commitments than blobs must be rejected during vector-length normalization before any backend-specific decoding occurs.",
+  "input": {
+    "blobs": [
+      "0x00",
+      "0x01"
+    ],
+    "commitments": [
+      "0xaa"
+    ],
+    "proofs": [
+      "0xbb",
+      "0xcc"
+    ]
+  },
+  "expected": {
+    "normalization": {
+      "result": "error",
+      "error": {
+        "kind": "wrongVectorLength",
+        "label": "blob_batch.commitments",
+        "expected": 2,
+        "actual": 1
+      }
+    },
+    "decision": "reject"
+  },
+  "tag_matrix": {
+    "v2.1.2": {
+      "expected_replay": "pass",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract."
+    },
+    "v2.1.3": {
+      "expected_replay": "pass",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract."
+    },
+    "v2.1.4": {
+      "expected_replay": "pass",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract."
+    },
+    "v2.1.5": {
+      "expected_replay": "pass",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract."
+    }
+  },
+  "notes": [
+    "This bootstrap case keeps payloads intentionally tiny because the vector-shape error occurs before any byte-length or cryptographic checks.",
+    "It is suitable for early FFI wiring because every conforming tag should agree on the same rejection."
+  ]
+}

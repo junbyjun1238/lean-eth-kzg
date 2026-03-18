@@ -34,13 +34,15 @@ The repository now includes:
 - stable dedup and transcript construction for Fulu cell-batch inputs,
 - a backend interface that cleanly separates byte-level semantics from cryptographic checks,
 - normalization reports that carry API and transcript payload metadata for future case manifests
-  and replay harnesses.
+  and replay harnesses,
+- an initial adversarial case-manifest schema, a first malformed batch witness, and a first
+  historical bad-tag draft case tied to upstream release notes.
 
 The main remaining gap is artifactization: `ffi`, `scripts`, `vendor`, and corpus outputs still
 need to grow into a tag-matrix replay pipeline that demonstrates historical bad-tag failures.
 
 ## Immediate next steps
 
-1. Add the first case manifest and adversarial witness values under `corpus/adversarial`.
+1. Replace the draft historical bad-tag case with concrete replayable bytes or a vendored fixture.
 2. Implement a vector-normalization script for pinned official releases.
 3. Build the first FFI replay matrix for `v2.1.2` through `v2.1.5`.
