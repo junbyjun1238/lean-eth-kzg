@@ -29,6 +29,24 @@ This repository targets the verifier-facing KZG boundary for Ethereum Deneb and 
 - vector preprocessing scripts,
 - C toolchain and FFI boundary used by replay harnesses.
 
+## Invalid-input boundary
+
+Lean currently decides:
+
+- exact byte lengths for public inputs,
+- vector-shape agreement across batch APIs,
+- cell index bounds,
+- transcript normal form for normalized inputs.
+
+External backends currently decide:
+
+- commitment and proof decoding validity,
+- field-element canonicality,
+- point-at-infinity and subgroup restrictions.
+
+The repository treats those cryptographic decode predicates as an explicit boundary rather than
+silently folding them into byte-level normalization.
+
 ## Explicit non-goals
 
 - full C memory or pointer verification,

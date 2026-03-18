@@ -22,6 +22,13 @@ def blobFiatShamirDomain : String := "FSBLOBVERIFY_V1_"
 def blobBatchChallengeDomain : String := "RCKZGBATCH___V1_"
 def cellBatchChallengeDomain : String := "RCKZGCBATCH__V1_"
 
+inductive VerificationApi where
+  | verifyKzgProof
+  | verifyBlobKzgProof
+  | verifyBlobKzgProofBatch
+  | verifyCellKzgProofBatch
+  deriving Repr, BEq, DecidableEq, Inhabited
+
 inductive Decision where
   | accept
   | reject
@@ -31,6 +38,7 @@ inductive NormalizationError where
   | wrongLength (label : String) (expected actual : Nat)
   | wrongVectorLength (label : String) (expected actual : Nat)
   | indexOutOfBounds (label : String) (upperBound actual : Nat)
+  | invariantViolation (label : String)
   deriving Repr, BEq, DecidableEq, Inhabited
 
 abbrev DecodeResult (T : Type) := Except NormalizationError T
@@ -39,6 +47,18 @@ structure TranscriptInput where
   domain : String
   messages : Array Bytes
   deriving Repr, Inhabited
+
+def TranscriptInput.messageCount (input : TranscriptInput) : Nat :=
+  input.messages.size
+
+def TranscriptInput.totalMessageBytes (input : TranscriptInput) : Nat :=
+  input.messages.foldl (fun total message => total + message.size) 0
+
+structure ExternalValidityBoundary where
+  commitmentWellFormed : CommitmentBytes -> Prop
+  proofWellFormed : ProofBytes -> Prop
+  fieldElementWellFormed : FieldElementBytes -> Prop
+  cellWellFormed : CellBytes -> Prop
 
 def ensureLength (label : String) (expected : Nat) (value : Bytes) : DecodeResult Bytes :=
   if value.size = expected then

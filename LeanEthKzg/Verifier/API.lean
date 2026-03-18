@@ -6,9 +6,27 @@ namespace LeanEthKzg.Verifier
 open LeanEthKzg.Spec
 
 structure NormalizationReport where
+  api : VerificationApi
   transcript : TranscriptInput
+  transcriptMessageCount : Nat
+  transcriptPayloadByteSize : Nat
+  normalizedInputCount : Nat
   uniqueCommitmentCount : Nat := 0
   deriving Repr, Inhabited
+
+def NormalizationReport.ofTranscript
+    (api : VerificationApi)
+    (transcript : TranscriptInput)
+    (normalizedInputCount : Nat)
+    (uniqueCommitmentCount : Nat := 0) : NormalizationReport :=
+  {
+    api,
+    transcript,
+    transcriptMessageCount := transcript.messageCount,
+    transcriptPayloadByteSize := transcript.totalMessageBytes,
+    normalizedInputCount,
+    uniqueCommitmentCount
+  }
 
 structure Backend where
   verifyKzgProof : NormalizedKzgProofInput -> Bool
@@ -38,7 +56,7 @@ def verifyNormalizedBlobKzgProofBatch (backend : Backend) (input : NormalizedBlo
     Decision :=
   toDecision (backend.verifyBlobKzgProofBatch input)
 
-def verificationDecision (result : DecodeResult (Decision × NormalizationReport)) : Decision :=
+def verificationDecision (result : DecodeResult (Prod Decision NormalizationReport)) : Decision :=
   match result with
   | .ok (decision, _) => decision
   | .error _ => .reject
@@ -58,16 +76,22 @@ theorem verifyNormalizedBlobKzgProof_singletonBatchConsistency
   exact congrArg toDecision (h input)
 
 def verifyKzgProof (backend : Backend) (input : KzgProofInput) :
-    DecodeResult (Decision × NormalizationReport) := do
+    DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeKzgProofInput input
   let transcript := kzgProofTranscript normalized
-  pure (toDecision (backend.verifyKzgProof normalized), { transcript })
+  pure (
+    toDecision (backend.verifyKzgProof normalized),
+    NormalizationReport.ofTranscript .verifyKzgProof transcript 1
+  )
 
 def verifyBlobKzgProof (backend : Backend) (input : BlobProofInput) :
-    DecodeResult (Decision × NormalizationReport) := do
+    DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeBlobProofInput input
   let transcript := blobProofTranscript normalized
-  pure (toDecision (backend.verifyBlobKzgProof normalized), { transcript })
+  pure (
+    toDecision (backend.verifyBlobKzgProof normalized),
+    NormalizationReport.ofTranscript .verifyBlobKzgProof transcript 1
+  )
 
 def normalizeBlobBatchForVerification (input : BlobBatchInput) :
     DecodeResult NormalizedBlobBatchInput := do
@@ -79,10 +103,16 @@ def normalizeBlobBatchForVerification (input : BlobBatchInput) :
       normalizeBlobBatchInput input
 
 def verifyBlobKzgProofBatch (backend : Backend) (input : BlobBatchInput) :
-    DecodeResult (Decision × NormalizationReport) := do
+    DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeBlobBatchForVerification input
   let transcript := blobBatchTranscript normalized
-  pure (toDecision (backend.verifyBlobKzgProofBatch normalized), { transcript })
+  pure (
+    toDecision (backend.verifyBlobKzgProofBatch normalized),
+    NormalizationReport.ofTranscript
+      .verifyBlobKzgProofBatch
+      transcript
+      normalized.entries.size
+  )
 
 theorem normalizeBlobBatchForVerification_toSingletonBatch (input : BlobProofInput) :
     normalizeBlobBatchForVerification input.toSingletonBatch =
@@ -108,15 +138,16 @@ theorem verifyBlobKzgProof_singletonBatchConsistency
       simpa using congrArg toDecision (h normalized)
 
 def verifyCellKzgProofBatch (backend : Backend) (input : CellBatchInput) :
-    DecodeResult (Decision × NormalizationReport) := do
+    DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeCellBatchInput input
   let transcript := cellBatchTranscript normalized
   pure (
     toDecision (backend.verifyCellKzgProofBatch normalized),
-    {
-      transcript,
-      uniqueCommitmentCount := normalized.uniqueCommitments.size
-    }
+    NormalizationReport.ofTranscript
+      .verifyCellKzgProofBatch
+      transcript
+      normalized.cells.size
+      normalized.uniqueCommitments.size
   )
 
 end LeanEthKzg.Verifier

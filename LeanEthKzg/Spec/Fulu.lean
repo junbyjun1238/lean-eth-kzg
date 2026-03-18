@@ -31,13 +31,21 @@ private def stableDedupCommitments (commitments : Array CommitmentBytes) : Array
       if acc.contains commitment then acc else acc.push commitment)
     #[]
 
-private def firstCommitmentIndex (commitments : Array CommitmentBytes) (target : CommitmentBytes) : Nat :=
-  let rec go (idx : Nat) (rest : List CommitmentBytes) : Nat :=
+private def firstCommitmentIndex? (commitments : Array CommitmentBytes)
+    (target : CommitmentBytes) : Option Nat :=
+  let rec go (idx : Nat) (rest : List CommitmentBytes) : Option Nat :=
     match rest with
-    | [] => 0
+    | [] => none
     | head :: tail =>
-        if head == target then idx else go (idx + 1) tail
+        if head == target then some idx else go (idx + 1) tail
   go 0 commitments.toList
+
+private def normalizeCommitmentIndex
+    (uniqueCommitments : Array CommitmentBytes)
+    (commitment : CommitmentBytes) : DecodeResult UInt64 :=
+  match firstCommitmentIndex? uniqueCommitments commitment with
+  | some index => .ok (UInt64.ofNat index)
+  | none => .error (.invariantViolation "cell_batch.unique_commitments")
 
 def normalizeCellBatchInput (input : CellBatchInput) : DecodeResult NormalizedCellBatchInput := do
   ensureVectorLength "cell_batch.cell_indices" input.commitments.size input.cellIndices.size
@@ -57,8 +65,10 @@ def normalizeCellBatchInput (input : CellBatchInput) : DecodeResult NormalizedCe
     cells := cells.push cell
     proofs := proofs.push proof
   let uniqueCommitments := stableDedupCommitments commitments
-  let commitmentIndices :=
-    commitments.map (fun commitment => UInt64.ofNat (firstCommitmentIndex uniqueCommitments commitment))
+  let mut commitmentIndices : Array UInt64 := #[]
+  for h : i in [0:commitments.size] do
+    let commitmentIndex <- normalizeCommitmentIndex uniqueCommitments commitments[i]
+    commitmentIndices := commitmentIndices.push commitmentIndex
   pure {
     commitments,
     uniqueCommitments,
