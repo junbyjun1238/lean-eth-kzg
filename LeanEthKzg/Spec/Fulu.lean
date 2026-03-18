@@ -87,7 +87,8 @@ def cellBatchTranscriptEntryMessages (input : NormalizedCellBatchInput) : Array 
     return acc
 
 def cellBatchTranscriptMessages (input : NormalizedCellBatchInput) : Array Bytes :=
-  cellBatchTranscriptHeader input ++ input.uniqueCommitments ++ cellBatchTranscriptEntryMessages input
+  cellBatchTranscriptHeader input ++
+    (input.uniqueCommitments ++ cellBatchTranscriptEntryMessages input)
 
 def cellBatchTranscript (input : NormalizedCellBatchInput) : TranscriptInput :=
   transcript cellBatchChallengeDomain (cellBatchTranscriptMessages input)
@@ -106,5 +107,31 @@ theorem uniqueCommitment_mem_cellBatchTranscript
     (h : commitment ∈ input.uniqueCommitments) :
     commitment ∈ (cellBatchTranscript input).messages := by
   simpa [cellBatchTranscript] using uniqueCommitment_mem_cellBatchTranscriptMessages input h
+
+theorem getElem?_cellBatchTranscriptMessages_uniqueCommitment
+    (input : NormalizedCellBatchInput)
+    {i : Nat}
+    (h : i < input.uniqueCommitments.size) :
+    (cellBatchTranscriptMessages input)[(cellBatchTranscriptHeader input).size + i]? =
+      some input.uniqueCommitments[i] := by
+  unfold cellBatchTranscriptMessages
+  have hOuter : (cellBatchTranscriptHeader input).size <= (cellBatchTranscriptHeader input).size + i :=
+    Nat.le_add_right _ _
+  rw [Array.getElem?_append_right hOuter]
+  have hInner :
+      (input.uniqueCommitments ++ cellBatchTranscriptEntryMessages input)[i]? =
+        some input.uniqueCommitments[i] := by
+    rw [Array.getElem?_append_left h]
+    exact Array.getElem?_eq_getElem h
+  simpa [Nat.add_sub_cancel_left] using hInner
+
+theorem getElem?_cellBatchTranscript_uniqueCommitment
+    (input : NormalizedCellBatchInput)
+    {i : Nat}
+    (h : i < input.uniqueCommitments.size) :
+    (cellBatchTranscript input).messages[(cellBatchTranscriptHeader input).size + i]? =
+      some input.uniqueCommitments[i] := by
+  simpa [cellBatchTranscript] using
+    getElem?_cellBatchTranscriptMessages_uniqueCommitment input h
 
 end LeanEthKzg.Spec

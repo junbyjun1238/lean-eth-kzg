@@ -19,15 +19,15 @@ theorem verifyKzgProof_rejectsOnNormalizationError
   rfl
 
 theorem verifyKzgProof_invalidInputDeterministic
-    (backend₁ backend₂ : Backend)
+    (backend1 backend2 : Backend)
     (input : KzgProofInput)
     (err : NormalizationError)
     (h : normalizeKzgProofInput input = .error err) :
-    verificationDecision (verifyKzgProof backend₁ input) =
-      verificationDecision (verifyKzgProof backend₂ input) := by
+    verificationDecision (verifyKzgProof backend1 input) =
+      verificationDecision (verifyKzgProof backend2 input) := by
   rw [
-    verifyKzgProof_rejectsOnNormalizationError backend₁ input err h,
-    verifyKzgProof_rejectsOnNormalizationError backend₂ input err h
+    verifyKzgProof_rejectsOnNormalizationError backend1 input err h,
+    verifyKzgProof_rejectsOnNormalizationError backend2 input err h
   ]
 
 theorem verifyBlobKzgProof_rejectsOnNormalizationError
@@ -41,15 +41,15 @@ theorem verifyBlobKzgProof_rejectsOnNormalizationError
   rfl
 
 theorem verifyBlobKzgProof_invalidInputDeterministic
-    (backend₁ backend₂ : Backend)
+    (backend1 backend2 : Backend)
     (input : BlobProofInput)
     (err : NormalizationError)
     (h : normalizeBlobProofInput input = .error err) :
-    verificationDecision (verifyBlobKzgProof backend₁ input) =
-      verificationDecision (verifyBlobKzgProof backend₂ input) := by
+    verificationDecision (verifyBlobKzgProof backend1 input) =
+      verificationDecision (verifyBlobKzgProof backend2 input) := by
   rw [
-    verifyBlobKzgProof_rejectsOnNormalizationError backend₁ input err h,
-    verifyBlobKzgProof_rejectsOnNormalizationError backend₂ input err h
+    verifyBlobKzgProof_rejectsOnNormalizationError backend1 input err h,
+    verifyBlobKzgProof_rejectsOnNormalizationError backend2 input err h
   ]
 
 theorem verifyBlobKzgProofBatch_rejectsOnNormalizationError
@@ -63,15 +63,15 @@ theorem verifyBlobKzgProofBatch_rejectsOnNormalizationError
   rfl
 
 theorem verifyBlobKzgProofBatch_invalidInputDeterministic
-    (backend₁ backend₂ : Backend)
+    (backend1 backend2 : Backend)
     (input : BlobBatchInput)
     (err : NormalizationError)
     (h : normalizeBlobBatchForVerification input = .error err) :
-    verificationDecision (verifyBlobKzgProofBatch backend₁ input) =
-      verificationDecision (verifyBlobKzgProofBatch backend₂ input) := by
+    verificationDecision (verifyBlobKzgProofBatch backend1 input) =
+      verificationDecision (verifyBlobKzgProofBatch backend2 input) := by
   rw [
-    verifyBlobKzgProofBatch_rejectsOnNormalizationError backend₁ input err h,
-    verifyBlobKzgProofBatch_rejectsOnNormalizationError backend₂ input err h
+    verifyBlobKzgProofBatch_rejectsOnNormalizationError backend1 input err h,
+    verifyBlobKzgProofBatch_rejectsOnNormalizationError backend2 input err h
   ]
 
 theorem verifyCellKzgProofBatch_rejectsOnNormalizationError
@@ -85,15 +85,15 @@ theorem verifyCellKzgProofBatch_rejectsOnNormalizationError
   rfl
 
 theorem verifyCellKzgProofBatch_invalidInputDeterministic
-    (backend₁ backend₂ : Backend)
+    (backend1 backend2 : Backend)
     (input : CellBatchInput)
     (err : NormalizationError)
     (h : normalizeCellBatchInput input = .error err) :
-    verificationDecision (verifyCellKzgProofBatch backend₁ input) =
-      verificationDecision (verifyCellKzgProofBatch backend₂ input) := by
+    verificationDecision (verifyCellKzgProofBatch backend1 input) =
+      verificationDecision (verifyCellKzgProofBatch backend2 input) := by
   rw [
-    verifyCellKzgProofBatch_rejectsOnNormalizationError backend₁ input err h,
-    verifyCellKzgProofBatch_rejectsOnNormalizationError backend₂ input err h
+    verifyCellKzgProofBatch_rejectsOnNormalizationError backend1 input err h,
+    verifyCellKzgProofBatch_rejectsOnNormalizationError backend2 input err h
   ]
 
 end LeanEthKzg.Verifier
