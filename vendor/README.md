@@ -6,3 +6,6 @@ This repository should prefer small manifests over vendoring large third-party t
 
 The first metadata files should describe pinned `c-kzg-4844` tags and the upstream release notes or
 PRs that explain why each tag matters to the replay matrix.
+
+When adversarial cases are imported from upstream regression suites, this directory should also pin
+the corresponding `consensus-spec-tests` release metadata.

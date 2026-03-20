@@ -4,6 +4,7 @@
 *.ilean
 *.trace
 *.log
+.tmp/
 plan.md
 review.md
 리뷰.md

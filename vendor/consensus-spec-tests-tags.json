@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "repository": "ethereum/consensus-spec-tests",
+  "tags": [
+    {
+      "tag": "v1.6.0-beta.0",
+      "commit": "bc5c1a7",
+      "historical_notes": [
+        "Includes the verify_cell_kzg_proof_batch regression test announced alongside the consensus-specs v1.6.0-beta.0 release.",
+        "Used as the source release for the point_at_infinity_fast_path_regression1 witness vendored in this repository."
+      ],
+      "references": [
+        "https://github.com/ethereum/consensus-spec-tests/releases/tag/v1.6.0-beta.0",
+        "https://github.com/ethereum/consensus-specs/releases/tag/v1.6.0-beta.0"
+      ]
+    }
+  ]
+}

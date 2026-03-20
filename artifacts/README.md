@@ -14,3 +14,7 @@ The first stable artifact format should include, at minimum:
 - transcript payload bytes or digest,
 - bug-class label,
 - per-tag expected outcome for pinned `c-kzg-4844` releases.
+
+Tracked bootstrap artifacts:
+
+- `adversarial-replay-plan.json`: deterministic expansion of adversarial cases across pinned tags.

@@ -3,6 +3,13 @@
   "case_schema": "case.schema.json",
   "cases": [
     {
+      "id": "point_at_infinity_fast_path_regression1",
+      "path": "cases/point_at_infinity_fast_path_regression1.json",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "pointAtInfinity",
+      "status": "active"
+    },
+    {
       "id": "blob_batch_vector_length_mismatch",
       "path": "cases/blob_batch_vector_length_mismatch.json",
       "api": "verify_blob_kzg_proof_batch",

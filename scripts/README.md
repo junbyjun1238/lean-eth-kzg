@@ -8,3 +8,7 @@ Expected near-term scripts:
 - corpus manifest generation,
 - replay orchestration for pinned implementation tags.
 
+Current scripts:
+
+- `build_replay_matrix.py`: expands adversarial cases and pinned tag metadata into a deterministic
+  replay plan for the future FFI runner.

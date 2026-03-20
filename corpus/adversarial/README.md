@@ -19,3 +19,6 @@ normalization contract without requiring large blobs or fully cryptographic test
 
 Historical bug cases may begin as `draft` entries when the upstream release/PR provenance is
 already known but the exact replayable bytes have not been vendored yet.
+
+Concrete upstream-imported cases should record the exact consensus-spec-tests tag and fixture path
+they came from so the FFI layer can replay the same bytes against pinned `c-kzg-4844` tags.

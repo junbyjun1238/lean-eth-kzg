@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "source_index": "corpus/adversarial/index.json",
+  "source_tags": "vendor/c-kzg-4844-tags.json",
+  "summary": {
+    "case_count": 3,
+    "runnable_case_count": 2,
+    "job_count": 12,
+    "runnable_job_count": 8
+  },
+  "cases": [
+    {
+      "id": "point_at_infinity_fast_path_regression1",
+      "api": "verify_cell_kzg_proof_batch",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "tag_count": 4,
+      "case_path": "corpus/adversarial/cases/point_at_infinity_fast_path_regression1.json"
+    },
+    {
+      "id": "blob_batch_vector_length_mismatch",
+      "api": "verify_blob_kzg_proof_batch",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "tag_count": 4,
+      "case_path": "corpus/adversarial/cases/blob_batch_vector_length_mismatch.json"
+    },
+    {
+      "id": "dedup_weak_fiat_shamir_minimal_draft",
+      "api": "verify_cell_kzg_proof_batch",
+      "status": "draft",
+      "runnable": false,
+      "fixture_state": "draft",
+      "tag_count": 4,
+      "case_path": "corpus/adversarial/cases/dedup_weak_fiat_shamir_minimal_draft.json"
+    }
+  ],
+  "jobs": [
+    {
+      "case_id": "point_at_infinity_fast_path_regression1",
+      "tag": "v2.1.2",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "pointAtInfinity",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "fail",
+      "expected_decision": "accept",
+      "expected_normalization": "ok",
+      "reason": "v2.1.2 predates the point-at-infinity fast-path fix for verify_cell_kzg_proof_batch.",
+      "tag_commit": "f516aee",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.2"
+      ],
+      "case_path": "corpus/adversarial/cases/point_at_infinity_fast_path_regression1.json"
+    },
+    {
+      "case_id": "point_at_infinity_fast_path_regression1",
+      "tag": "v2.1.3",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "pointAtInfinity",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "accept",
+      "expected_normalization": "ok",
+      "reason": "v2.1.3 fixes the point-at-infinity bug in the fast path.",
+      "tag_commit": "936125d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.3",
+        "https://github.com/ethereum/c-kzg-4844/pull/600"
+      ],
+      "case_path": "corpus/adversarial/cases/point_at_infinity_fast_path_regression1.json"
+    },
+    {
+      "case_id": "point_at_infinity_fast_path_regression1",
+      "tag": "v2.1.4",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "pointAtInfinity",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "accept",
+      "expected_normalization": "ok",
+      "reason": "v2.1.4 retains the point-at-infinity fast-path fix.",
+      "tag_commit": "a679ae5",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5"
+      ],
+      "case_path": "corpus/adversarial/cases/point_at_infinity_fast_path_regression1.json"
+    },
+    {
+      "case_id": "point_at_infinity_fast_path_regression1",
+      "tag": "v2.1.5",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "pointAtInfinity",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "accept",
+      "expected_normalization": "ok",
+      "reason": "v2.1.5 retains the point-at-infinity fast-path fix.",
+      "tag_commit": "7043f4d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5",
+        "https://github.com/ethereum/c-kzg-4844/pull/607"
+      ],
+      "case_path": "corpus/adversarial/cases/point_at_infinity_fast_path_regression1.json"
+    },
+    {
+      "case_id": "blob_batch_vector_length_mismatch",
+      "tag": "v2.1.2",
+      "api": "verify_blob_kzg_proof_batch",
+      "family": "malformedBytes",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "error",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract.",
+      "tag_commit": "f516aee",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.2"
+      ],
+      "case_path": "corpus/adversarial/cases/blob_batch_vector_length_mismatch.json"
+    },
+    {
+      "case_id": "blob_batch_vector_length_mismatch",
+      "tag": "v2.1.3",
+      "api": "verify_blob_kzg_proof_batch",
+      "family": "malformedBytes",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "error",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract.",
+      "tag_commit": "936125d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.3",
+        "https://github.com/ethereum/c-kzg-4844/pull/600"
+      ],
+      "case_path": "corpus/adversarial/cases/blob_batch_vector_length_mismatch.json"
+    },
+    {
+      "case_id": "blob_batch_vector_length_mismatch",
+      "tag": "v2.1.4",
+      "api": "verify_blob_kzg_proof_batch",
+      "family": "malformedBytes",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "error",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract.",
+      "tag_commit": "a679ae5",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5"
+      ],
+      "case_path": "corpus/adversarial/cases/blob_batch_vector_length_mismatch.json"
+    },
+    {
+      "case_id": "blob_batch_vector_length_mismatch",
+      "tag": "v2.1.5",
+      "api": "verify_blob_kzg_proof_batch",
+      "family": "malformedBytes",
+      "status": "active",
+      "runnable": true,
+      "fixture_state": "inline_or_manifest_only",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "error",
+      "reason": "Rejecting malformed batch vector shapes is part of the public verifier contract.",
+      "tag_commit": "7043f4d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5",
+        "https://github.com/ethereum/c-kzg-4844/pull/607"
+      ],
+      "case_path": "corpus/adversarial/cases/blob_batch_vector_length_mismatch.json"
+    },
+    {
+      "case_id": "dedup_weak_fiat_shamir_minimal_draft",
+      "tag": "v2.1.2",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "duplicateCommitments",
+      "status": "draft",
+      "runnable": false,
+      "fixture_state": "draft",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "ok",
+      "reason": "Current repo taxonomy does not mark this tag as the affected historical failure for duplicate commitments.",
+      "tag_commit": "f516aee",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.2"
+      ],
+      "case_path": "corpus/adversarial/cases/dedup_weak_fiat_shamir_minimal_draft.json"
+    },
+    {
+      "case_id": "dedup_weak_fiat_shamir_minimal_draft",
+      "tag": "v2.1.3",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "duplicateCommitments",
+      "status": "draft",
+      "runnable": false,
+      "fixture_state": "draft",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "ok",
+      "reason": "Current repo taxonomy does not mark this tag as the affected historical failure for duplicate commitments.",
+      "tag_commit": "936125d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.3",
+        "https://github.com/ethereum/c-kzg-4844/pull/600"
+      ],
+      "case_path": "corpus/adversarial/cases/dedup_weak_fiat_shamir_minimal_draft.json"
+    },
+    {
+      "case_id": "dedup_weak_fiat_shamir_minimal_draft",
+      "tag": "v2.1.4",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "duplicateCommitments",
+      "status": "draft",
+      "runnable": false,
+      "fixture_state": "draft",
+      "expected_replay": "fail",
+      "expected_decision": "reject",
+      "expected_normalization": "ok",
+      "reason": "The historical bug used the deduplicated commitment count with the original commitments array, so not all unique commitments were bound into the challenge.",
+      "tag_commit": "a679ae5",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5"
+      ],
+      "case_path": "corpus/adversarial/cases/dedup_weak_fiat_shamir_minimal_draft.json"
+    },
+    {
+      "case_id": "dedup_weak_fiat_shamir_minimal_draft",
+      "tag": "v2.1.5",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "duplicateCommitments",
+      "status": "draft",
+      "runnable": false,
+      "fixture_state": "draft",
+      "expected_replay": "pass",
+      "expected_decision": "reject",
+      "expected_normalization": "ok",
+      "reason": "v2.1.5 explicitly fixes the deduplicated-commitment challenge construction bug.",
+      "tag_commit": "7043f4d",
+      "tag_references": [
+        "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5",
+        "https://github.com/ethereum/c-kzg-4844/pull/607"
+      ],
+      "case_path": "corpus/adversarial/cases/dedup_weak_fiat_shamir_minimal_draft.json"
+    }
+  ]
+}
