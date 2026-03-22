@@ -8,3 +8,5 @@
 plan.md
 review.md
 리뷰.md
+__pycache__/
+*.pyc

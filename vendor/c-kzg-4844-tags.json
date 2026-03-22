@@ -28,7 +28,7 @@
       "commit": "a679ae5",
       "historical_notes": [
         "Keeps the point-at-infinity mitigation but predates the deduplicated-commitment challenge fix.",
-        "This tag is the historical bad target for the draft dedupWeakFiatShamir witness family in this repo."
+        "This tag is the historical bad target for the dedupWeakFiatShamir witness family in this repo."
       ],
       "references": [
         "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",

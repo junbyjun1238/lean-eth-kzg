@@ -1,0 +1,61 @@
+name: Replay Matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/replay-matrix.yml"
+      - "scripts/**"
+      - "corpus/adversarial/**"
+      - "vendor/c-kzg-4844-tags.json"
+      - "artifacts/README.md"
+      - "ffi/README.md"
+      - "README.md"
+  pull_request:
+    paths:
+      - ".github/workflows/replay-matrix.yml"
+      - "scripts/**"
+      - "corpus/adversarial/**"
+      - "vendor/c-kzg-4844-tags.json"
+      - "artifacts/README.md"
+      - "ffi/README.md"
+      - "README.md"
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Build replay plan
+        run: python scripts/build_replay_matrix.py
+
+      - name: Fetch pinned c-kzg-4844 tags
+        run: python scripts/fetch_c_kzg_tags.py
+
+      - name: Run replay matrix
+        run: python scripts/run_replay_plan.py --strict
+
+      - name: Upload replay artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: replay-matrix-artifacts
+          path: |
+            artifacts/adversarial-replay-plan.json
+            artifacts/adversarial-replay-report.json

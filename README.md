@@ -35,16 +35,18 @@ The repository now includes:
 - a backend interface that cleanly separates byte-level semantics from cryptographic checks,
 - normalization reports that carry API and transcript payload metadata for future case manifests
   and replay harnesses,
-- an initial adversarial case-manifest schema, a first malformed batch witness, and a first
-  concrete historical bad-tag witness imported from upstream consensus-spec-tests,
-- a second historical bad-tag draft case tied to upstream release notes,
-- a script-generated replay plan that expands adversarial cases across pinned `c-kzg-4844` tags.
+- an initial adversarial case-manifest schema, a first malformed batch witness, and two
+  concrete historical bad-tag witnesses imported from upstream consensus-spec-tests,
+- a script-generated replay plan that expands adversarial cases across pinned `c-kzg-4844` tags,
+- a replay runner that resolves pinned `c-kzg-4844` checkouts and emits per-tag replay reports,
+- a GitHub Actions workflow that fetches pinned tags and runs the replay matrix on Linux.
 
-The main remaining gap is artifactization: `ffi`, `scripts`, `vendor`, and corpus outputs still
-need to grow into a tag-matrix replay pipeline that demonstrates historical bad-tag failures.
+The main remaining gap is confirmation: this repository now has the replay-plan, checkout-fetch,
+runner, and CI wiring layers, but still needs first observed Linux reports that confirm the
+historical bad-tag expectations end to end.
 
 ## Immediate next steps
 
-1. Replace the remaining draft historical bad-tag case with concrete replayable bytes or a vendored fixture.
+1. Inspect the first Linux CI replay report and confirm that the historical bad tags fail exactly where expected.
 2. Implement a vector-normalization script for pinned official releases.
-3. Teach the FFI runner to execute the generated replay plan against local `c-kzg-4844` checkouts.
+3. Add compact bad-tag summaries for CI and README consumption.

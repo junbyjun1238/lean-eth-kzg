@@ -10,18 +10,18 @@
       "status": "active"
     },
     {
+      "id": "dedup_weak_fiat_shamir_not_sorted",
+      "path": "cases/dedup_weak_fiat_shamir_not_sorted.json",
+      "api": "verify_cell_kzg_proof_batch",
+      "family": "duplicateCommitments",
+      "status": "active"
+    },
+    {
       "id": "blob_batch_vector_length_mismatch",
       "path": "cases/blob_batch_vector_length_mismatch.json",
       "api": "verify_blob_kzg_proof_batch",
       "family": "malformedBytes",
       "status": "active"
-    },
-    {
-      "id": "dedup_weak_fiat_shamir_minimal_draft",
-      "path": "cases/dedup_weak_fiat_shamir_minimal_draft.json",
-      "api": "verify_cell_kzg_proof_batch",
-      "family": "duplicateCommitments",
-      "status": "draft"
     }
   ]
 }

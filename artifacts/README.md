@@ -18,3 +18,8 @@ The first stable artifact format should include, at minimum:
 Tracked bootstrap artifacts:
 
 - `adversarial-replay-plan.json`: deterministic expansion of adversarial cases across pinned tags.
+
+The next generated artifact is:
+
+- `adversarial-replay-report.json`: observed pass/fail/skip outcomes keyed by the same case and
+  tag coordinates, plus checkout/build readiness details.

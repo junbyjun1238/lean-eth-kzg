@@ -7,5 +7,10 @@ The harness layer exists to compare Lean-side semantics with implementation beha
 The immediate contract for this layer is:
 
 - consume `artifacts/adversarial-replay-plan.json`,
+- resolve pinned checkouts for each tag,
 - run only entries marked `runnable: true`,
 - report observed outcomes back in the same case and tag coordinates.
+
+The current repository implementation of that contract lives in
+`scripts/run_replay_plan.py`, which expects checkouts under `.tmp/c-kzg-4844-<tag>` by default
+and uses the official Python binding surface from each checkout.
