@@ -48,6 +48,6 @@ on `c-kzg-4844 v2.1.4`.
 
 ## Immediate next steps
 
-1. Synthesize or import a stronger deduplicated-commitment witness that actually fails on `c-kzg-4844 v2.1.4`.
+1. Use the differential-search harness to synthesize or import a stronger deduplicated-commitment witness that actually fails on `c-kzg-4844 v2.1.4`.
 2. Implement a vector-normalization script for pinned official releases.
 3. Add compact bad-tag summaries for CI and README consumption.

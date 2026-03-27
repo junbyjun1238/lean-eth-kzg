@@ -23,3 +23,6 @@ The next generated artifact is:
 
 - `adversarial-replay-report.json`: observed pass/fail/skip outcomes keyed by the same case and
   tag coordinates, plus checkout/build readiness details.
+- `dedup-search-report.json`: differential-search summary for candidate `verify_cell_kzg_proof_batch`
+  witnesses across `v2.1.4` and `v2.1.5`.
+- `dedup-search-candidates/`: concrete candidate cases that exhibited differing behavior.

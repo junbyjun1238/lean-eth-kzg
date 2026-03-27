@@ -17,3 +17,5 @@ Current scripts:
 - `run_replay_plan.py`: resolves pinned `c-kzg-4844` checkouts, builds the Python binding when
   possible, writes a replay report that records pass/fail/skip outcomes per case and tag, and can
   fail CI in `--strict` mode if any replay job does not land in `status=pass`.
+- `search_dedup_differentials.py`: mutates the duplicate-commitment Fulu seed case against donor
+  entries from consensus-spec-tests and searches for `v2.1.4` vs `v2.1.5` verifier differentials.

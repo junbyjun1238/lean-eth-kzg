@@ -10,3 +10,5 @@ review.md
 리뷰.md
 __pycache__/
 *.pyc
+artifacts/dedup-search-report.json
+artifacts/dedup-search-candidates/
