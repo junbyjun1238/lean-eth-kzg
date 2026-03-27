@@ -142,7 +142,7 @@
       "expected_replay": "pass",
       "expected_decision": "accept",
       "expected_normalization": "ok",
-      "reason": "Current repo taxonomy does not mark v2.1.3 as the affected historical failure for duplicate commitments.",
+      "reason": "The imported not-sorted fixture is expected to verify successfully on fixed and observed tags.",
       "tag_commit": "936125d",
       "tag_references": [
         "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.3",
@@ -158,10 +158,10 @@
       "status": "active",
       "runnable": true,
       "fixture_state": "inline_or_manifest_only",
-      "expected_replay": "fail",
+      "expected_replay": "pass",
       "expected_decision": "accept",
       "expected_normalization": "ok",
-      "reason": "v2.1.4 predates the deduplicated-commitment challenge fix and is the historical bad tag for this witness family.",
+      "reason": "Observed Linux CI replay on 2026-03-22 accepted this fixture on v2.1.4, so it is tracked as a duplicate-commitment coverage case rather than a historical failing witness.",
       "tag_commit": "a679ae5",
       "tag_references": [
         "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.4",
@@ -180,7 +180,7 @@
       "expected_replay": "pass",
       "expected_decision": "accept",
       "expected_normalization": "ok",
-      "reason": "v2.1.5 fixes the deduplicated-commitment challenge construction bug.",
+      "reason": "The imported not-sorted fixture is expected to verify successfully on fixed and observed tags.",
       "tag_commit": "7043f4d",
       "tag_references": [
         "https://github.com/ethereum/c-kzg-4844/releases/tag/v2.1.5",

@@ -35,18 +35,19 @@ The repository now includes:
 - a backend interface that cleanly separates byte-level semantics from cryptographic checks,
 - normalization reports that carry API and transcript payload metadata for future case manifests
   and replay harnesses,
-- an initial adversarial case-manifest schema, a first malformed batch witness, and two
-  concrete historical bad-tag witnesses imported from upstream consensus-spec-tests,
+- an initial adversarial case-manifest schema, a first malformed batch witness, one concrete
+  historical bad-tag witness, and one upstream-imported duplicate-commitment coverage case,
 - a script-generated replay plan that expands adversarial cases across pinned `c-kzg-4844` tags,
 - a replay runner that resolves pinned `c-kzg-4844` checkouts and emits per-tag replay reports,
 - a GitHub Actions workflow that fetches pinned tags and runs the replay matrix on Linux.
 
 The main remaining gap is confirmation: this repository now has the replay-plan, checkout-fetch,
-runner, and CI wiring layers, but still needs first observed Linux reports that confirm the
-historical bad-tag expectations end to end.
+runner, and CI wiring layers, but still needs a stronger deduplicated-commitment witness after
+the first Linux report on 2026-03-22 showed that the imported `not_sorted` fixture still passes
+on `c-kzg-4844 v2.1.4`.
 
 ## Immediate next steps
 
-1. Inspect the first Linux CI replay report and confirm that the historical bad tags fail exactly where expected.
+1. Synthesize or import a stronger deduplicated-commitment witness that actually fails on `c-kzg-4844 v2.1.4`.
 2. Implement a vector-normalization script for pinned official releases.
 3. Add compact bad-tag summaries for CI and README consumption.

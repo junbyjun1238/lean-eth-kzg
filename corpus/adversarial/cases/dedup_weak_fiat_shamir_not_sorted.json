@@ -5,12 +5,12 @@
   "source": "adversarial",
   "api": "verify_cell_kzg_proof_batch",
   "family": "duplicateCommitments",
-  "bug_class": "dedupWeakFiatShamir",
+  "bug_class": null,
   "invariants": [
     "challengeCanonicality",
     "uniqueCommitmentBinding"
   ],
-  "summary": "Concrete historical regression imported from consensus-spec-tests v1.6.0-beta.0. This valid Fulu cell-batch witness has 4 commitments but only 3 unique commitments, exercising the deduplicated-commitment challenge binding bug fixed in c-kzg-4844 v2.1.5.",
+  "summary": "Concrete duplicate-commitment coverage case imported from consensus-spec-tests v1.6.0-beta.0. This valid Fulu cell-batch witness has 4 commitments but only 3 unique commitments, but by itself does not reproduce the historical deduplicated-commitment failure on c-kzg-4844 v2.1.4.",
   "input": {
     "source_fixture_tag": "v1.6.0-beta.0",
     "source_fixture_path": "tests/general/fulu/kzg/verify_cell_kzg_proof_batch/kzg-mainnet/verify_cell_kzg_proof_batch_case_valid_not_sorted/data.yaml",
@@ -54,20 +54,21 @@
     },
     "v2.1.3": {
       "expected_replay": "pass",
-      "reason": "Current repo taxonomy does not mark v2.1.3 as the affected historical failure for duplicate commitments."
+      "reason": "The imported not-sorted fixture is expected to verify successfully on fixed and observed tags."
     },
     "v2.1.4": {
-      "expected_replay": "fail",
-      "reason": "v2.1.4 predates the deduplicated-commitment challenge fix and is the historical bad tag for this witness family."
+      "expected_replay": "pass",
+      "reason": "Observed Linux CI replay on 2026-03-22 accepted this fixture on v2.1.4, so it is tracked as a duplicate-commitment coverage case rather than a historical failing witness."
     },
     "v2.1.5": {
       "expected_replay": "pass",
-      "reason": "v2.1.5 fixes the deduplicated-commitment challenge construction bug."
+      "reason": "The imported not-sorted fixture is expected to verify successfully on fixed and observed tags."
     }
   },
   "notes": [
     "This fixture is imported verbatim from consensus-spec-tests rather than synthesized locally.",
-    "The commitments are intentionally not sorted and include a duplicate, which is the public-input shape needed for the weak Fiat-Shamir regression."
+    "The commitments are intentionally not sorted and include a duplicate, so this case still covers the public-input shape relevant to deduplicated-commitment reasoning.",
+    "Replay Matrix on 2026-03-22 observed accept on c-kzg-4844 v2.1.4, so a stronger historical dedup witness is still needed."
   ],
   "references": [
     "https://github.com/ethereum/consensus-spec-tests/releases/tag/v1.6.0-beta.0",
