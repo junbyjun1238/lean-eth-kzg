@@ -15,6 +15,10 @@ on:
         description: Maximum differentials to persist
         required: false
         default: "32"
+      synthetic_seed_limit:
+        description: Maximum synthetic bug-shape seeds to derive
+        required: false
+        default: "128"
 
 permissions:
   contents: read
@@ -50,6 +54,7 @@ jobs:
           --max-donors "${{ inputs.max_donors }}"
           --max-candidates "${{ inputs.max_candidates }}"
           --max-differentials "${{ inputs.max_differentials }}"
+          --synthetic-seed-limit "${{ inputs.synthetic_seed_limit }}"
 
       - name: Upload search artifacts
         if: always()

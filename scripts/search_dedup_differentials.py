@@ -42,6 +42,9 @@ DEFAULT_MUTATION_FAMILIES = [
     "replace_cell_only",
     "replace_proof_only",
     "replace_commitment_and_proof",
+    "swap_with_prefix",
+    "append_donor_entry",
+    "append_seed_entry",
 ]
 
 
@@ -56,6 +59,12 @@ def stable_unique(values: list[str]) -> list[str]:
         if value not in unique:
             unique.append(value)
     return unique
+
+
+def short_hex(hex_text: str, prefix_chars: int = 14) -> str:
+    if hex_text.startswith("0x"):
+        return "0x" + hex_text[2 : 2 + prefix_chars]
+    return hex_text[:prefix_chars]
 
 
 def build_entries(test: dict) -> list[dict]:
@@ -83,6 +92,75 @@ def build_case_input(entries: list[dict]) -> dict:
     }
 
 
+def analyze_entries(entries: list[dict]) -> dict:
+    commitments = [entry["commitment"] for entry in entries]
+    unique_commitments = stable_unique(commitments)
+    tail_start = len(unique_commitments)
+    buggy_prefix_commitments = commitments[:tail_start]
+
+    first_index_by_commitment: dict[str, int] = {}
+    duplicate_positions = []
+    first_commitment_indices = []
+    for index, commitment in enumerate(commitments):
+        if commitment in first_index_by_commitment:
+            duplicate_positions.append(index)
+        else:
+            first_index_by_commitment[commitment] = index
+        first_commitment_indices.append(first_index_by_commitment[commitment])
+
+    ignored_unique_tail_commitments = stable_unique(
+        [
+            commitments[index]
+            for index in range(tail_start, len(commitments))
+            if commitments[index] not in buggy_prefix_commitments
+        ]
+    )
+    bug_shape = buggy_prefix_commitments != unique_commitments
+
+    return {
+        "entry_count": len(entries),
+        "unique_commitment_count": len(unique_commitments),
+        "tail_positions": list(range(tail_start, len(entries))),
+        "bug_shape": bug_shape,
+        "duplicate_positions": duplicate_positions,
+        "first_commitment_indices": first_commitment_indices,
+        "ignored_unique_tail_count": len(ignored_unique_tail_commitments),
+        "ignored_unique_tail_commitment_prefixes": [
+            short_hex(commitment) for commitment in ignored_unique_tail_commitments
+        ],
+        "unique_commitment_prefixes": [
+            short_hex(commitment) for commitment in unique_commitments
+        ],
+        "buggy_prefix_commitment_prefixes": [
+            short_hex(commitment) for commitment in buggy_prefix_commitments
+        ],
+    }
+
+
+def make_case_record(
+    name: str,
+    path: str,
+    entries: list[dict],
+    origin: str,
+    source_case: str | None = None,
+    synthetic_recipe: dict | None = None,
+) -> dict:
+    shape = analyze_entries(entries)
+    return {
+        "name": name,
+        "path": path,
+        "entries": entries,
+        "entry_count": shape["entry_count"],
+        "unique_commitment_count": shape["unique_commitment_count"],
+        "tail_positions": shape["tail_positions"],
+        "bug_shape": shape["bug_shape"],
+        "shape": shape,
+        "origin": origin,
+        "source_case": source_case,
+        "synthetic_recipe": synthetic_recipe,
+    }
+
+
 def load_valid_fixture_cases(fixtures_root: Path) -> list[dict]:
     cases = []
     for path in sorted(fixtures_root.glob("*/data.yaml")):
@@ -90,19 +168,13 @@ def load_valid_fixture_cases(fixtures_root: Path) -> list[dict]:
         if test.get("output") is not True:
             continue
         entries = build_entries(test)
-        unique_commitments = stable_unique([entry["commitment"] for entry in entries])
-        tail_start = len(unique_commitments)
-        bug_shape = [entry["commitment"] for entry in entries[:tail_start]] != unique_commitments
         cases.append(
-            {
-                "name": path.parent.name,
-                "path": path.as_posix(),
-                "entries": entries,
-                "entry_count": len(entries),
-                "unique_commitment_count": len(unique_commitments),
-                "tail_positions": list(range(tail_start, len(entries))),
-                "bug_shape": bug_shape,
-            }
+            make_case_record(
+                name=path.parent.name,
+                path=path.as_posix(),
+                entries=entries,
+                origin="fixture",
+            )
         )
     return cases
 
@@ -131,16 +203,55 @@ def collect_donor_entries(valid_cases: list[dict]) -> list[dict]:
     return donors
 
 
-def mutate_entries(
-    seed_entries: list[dict],
-    target_index: int,
-    donor: dict,
-    family: str,
-) -> list[dict]:
+def build_synthetic_seed_cases(valid_cases: list[dict], max_cases: int) -> list[dict]:
+    if max_cases <= 0:
+        return []
+
+    synthetic_cases = []
+    seen_signatures = set()
+    for case in valid_cases:
+        entries = case["entries"]
+        if len(entries) < 4:
+            continue
+        for target_index in range(1, len(entries) - 1):
+            for source_index in range(target_index):
+                if entries[source_index]["commitment"] == entries[target_index]["commitment"]:
+                    continue
+                mutated = copy.deepcopy(entries)
+                mutated[target_index] = copy.deepcopy(entries[source_index])
+                shape = analyze_entries(mutated)
+                if not shape["bug_shape"]:
+                    continue
+                signature = entries_signature(mutated)
+                if signature in seen_signatures:
+                    continue
+                seen_signatures.add(signature)
+                synthetic_cases.append(
+                    make_case_record(
+                        name=f"{case['name']}__dup{source_index}_into{target_index}",
+                        path=case["path"],
+                        entries=mutated,
+                        origin="synthetic_duplicate_prefix",
+                        source_case=case["name"],
+                        synthetic_recipe={
+                            "kind": "duplicate_prefix_into_position",
+                            "source_index": source_index,
+                            "target_index": target_index,
+                        },
+                    )
+                )
+                if len(synthetic_cases) >= max_cases:
+                    return synthetic_cases
+    return synthetic_cases
+
+
+def mutate_entries(seed_entries: list[dict], mutation: dict) -> list[dict]:
     mutated = copy.deepcopy(seed_entries)
-    target = mutated[target_index]
+    family = mutation["family"]
+    target_index = mutation.get("target_index")
 
     if family == "replace_full_entry":
+        donor = mutation["donor"]
         mutated[target_index] = {
             "commitment": donor["commitment"],
             "cell_index": donor["cell_index"],
@@ -148,15 +259,42 @@ def mutate_entries(
             "proof": donor["proof"],
         }
     elif family == "replace_commitment_only":
+        target = mutated[mutation["target_index"]]
+        donor = mutation["donor"]
         target["commitment"] = donor["commitment"]
     elif family == "replace_cell_only":
+        target = mutated[mutation["target_index"]]
+        donor = mutation["donor"]
         target["cell_index"] = donor["cell_index"]
         target["cell"] = donor["cell"]
     elif family == "replace_proof_only":
+        target = mutated[mutation["target_index"]]
+        donor = mutation["donor"]
         target["proof"] = donor["proof"]
     elif family == "replace_commitment_and_proof":
+        target = mutated[mutation["target_index"]]
+        donor = mutation["donor"]
         target["commitment"] = donor["commitment"]
         target["proof"] = donor["proof"]
+    elif family == "swap_with_prefix":
+        prefix_index = mutation["prefix_index"]
+        target_index = mutation["target_index"]
+        mutated[prefix_index], mutated[target_index] = (
+            mutated[target_index],
+            mutated[prefix_index],
+        )
+    elif family == "append_donor_entry":
+        donor = mutation["donor"]
+        mutated.append(
+            {
+                "commitment": donor["commitment"],
+                "cell_index": donor["cell_index"],
+                "cell": donor["cell"],
+                "proof": donor["proof"],
+            }
+        )
+    elif family == "append_seed_entry":
+        mutated.append(copy.deepcopy(seed_entries[mutation["source_index"]]))
     else:
         raise ValueError(f"unsupported mutation family: {family}")
 
@@ -168,6 +306,59 @@ def entries_signature(entries: list[dict]) -> tuple:
         (entry["commitment"], entry["cell_index"], entry["cell"], entry["proof"])
         for entry in entries
     )
+
+
+def iter_mutations(seed_case: dict, donor_entries: list[dict], max_donors: int, mutation_families: list[str]):
+    donor_slice = donor_entries[:max_donors]
+    tail_positions = seed_case["tail_positions"]
+    seed_entries = seed_case["entries"]
+
+    for family in mutation_families:
+        if family in {
+            "replace_full_entry",
+            "replace_commitment_only",
+            "replace_cell_only",
+            "replace_proof_only",
+            "replace_commitment_and_proof",
+        }:
+            for target_index in tail_positions:
+                for donor in donor_slice:
+                    yield {
+                        "family": family,
+                        "target_index": target_index,
+                        "donor": donor,
+                        "id_suffix": (
+                            f"{family}__tail{target_index}"
+                            f"__{donor['source_case']}__entry{donor['source_index']}"
+                        ),
+                    }
+        elif family == "swap_with_prefix":
+            for target_index in tail_positions:
+                for prefix_index in range(target_index):
+                    yield {
+                        "family": family,
+                        "target_index": target_index,
+                        "prefix_index": prefix_index,
+                        "id_suffix": f"{family}__prefix{prefix_index}__tail{target_index}",
+                    }
+        elif family == "append_donor_entry":
+            for donor in donor_slice:
+                yield {
+                    "family": family,
+                    "donor": donor,
+                    "id_suffix": (
+                        f"{family}__{donor['source_case']}__entry{donor['source_index']}"
+                    ),
+                }
+        elif family == "append_seed_entry":
+            for source_index in range(len(seed_entries)):
+                yield {
+                    "family": family,
+                    "source_index": source_index,
+                    "id_suffix": f"{family}__entry{source_index}",
+                }
+        else:
+            raise ValueError(f"unsupported mutation family: {family}")
 
 
 def observe_candidate(
@@ -225,7 +416,12 @@ def build_report(args: argparse.Namespace) -> dict:
     script_path = (REPO_ROOT / "scripts" / "run_replay_plan.py").resolve()
 
     valid_cases = load_valid_fixture_cases(fixtures_root)
-    seed_cases = [case for case in valid_cases if case["bug_shape"]]
+    fixture_seed_cases = [case for case in valid_cases if case["bug_shape"]]
+    synthetic_seed_cases = build_synthetic_seed_cases(
+        valid_cases=valid_cases,
+        max_cases=args.synthetic_seed_limit,
+    )
+    seed_cases = fixture_seed_cases + synthetic_seed_cases
     donor_entries = collect_donor_entries(valid_cases)
     mutation_families = args.mutation_family or DEFAULT_MUTATION_FAMILIES
 
@@ -254,111 +450,120 @@ def build_report(args: argparse.Namespace) -> dict:
     differential_count = 0
     desired_differential_count = 0
     differentials = []
+    family_summary = {
+        family: {
+            "processed_count": 0,
+            "executed_count": 0,
+            "skipped_count": 0,
+            "differential_count": 0,
+        }
+        for family in mutation_families
+    }
 
     with tempfile.TemporaryDirectory() as temp_dir_text:
         temp_case_path = Path(temp_dir_text) / "candidate.json"
 
         for seed_case in seed_cases:
             seed_signature = entries_signature(seed_case["entries"])
-            for target_index in seed_case["tail_positions"]:
-                for family in mutation_families:
-                    for donor in donor_entries[: args.max_donors]:
-                        mutated_entries = mutate_entries(
-                            seed_entries=seed_case["entries"],
-                            target_index=target_index,
-                            donor=donor,
-                            family=family,
-                        )
-                        signature = entries_signature(mutated_entries)
-                        if signature == seed_signature or signature in seen_signatures:
-                            skipped_count += 1
-                            continue
-                        seen_signatures.add(signature)
-                        processed_count += 1
+            for mutation in iter_mutations(
+                seed_case=seed_case,
+                donor_entries=donor_entries,
+                max_donors=args.max_donors,
+                mutation_families=mutation_families,
+            ):
+                family = mutation["family"]
+                mutated_entries = mutate_entries(
+                    seed_entries=seed_case["entries"],
+                    mutation=mutation,
+                )
+                signature = entries_signature(mutated_entries)
+                if signature == seed_signature or signature in seen_signatures:
+                    skipped_count += 1
+                    family_summary[family]["skipped_count"] += 1
+                    continue
+                seen_signatures.add(signature)
+                processed_count += 1
+                family_summary[family]["processed_count"] += 1
 
-                        candidate_case = build_case_input(mutated_entries)
-                        dump_json(temp_case_path, candidate_case)
+                candidate_case = build_case_input(mutated_entries)
+                candidate_shape = analyze_entries(mutated_entries)
+                dump_json(temp_case_path, candidate_case)
 
-                        candidate_id = (
-                            f"{seed_case['name']}__{family}__tail{target_index}"
-                            f"__{donor['source_case']}__entry{donor['source_index']}"
-                        )
+                candidate_id = f"{seed_case['name']}__{mutation['id_suffix']}"
 
-                        if (
-                            args.dry_run
-                            or baseline_state["status"] != "ready"
-                            or fixed_state["status"] != "ready"
-                        ):
-                            if processed_count >= args.max_candidates:
-                                break
-                            continue
-
-                        baseline_observed = observe_candidate(
-                            temp_case_path=temp_case_path,
-                            script_path=script_path,
-                            python_executable=args.python_executable,
-                            tag_state=baseline_state,
-                        )
-                        fixed_observed = observe_candidate(
-                            temp_case_path=temp_case_path,
-                            script_path=script_path,
-                            python_executable=args.python_executable,
-                            tag_state=fixed_state,
-                        )
-                        executed_count += 1
-
-                        if baseline_observed != fixed_observed:
-                            kind = differential_kind(
-                                baseline_observed=baseline_observed,
-                                fixed_observed=fixed_observed,
-                            )
-                            differential_count += 1
-                            if kind == "baseline_accept_fixed_reject":
-                                desired_differential_count += 1
-
-                            candidate_output_path = candidate_dir / f"{candidate_id}.json"
-                            dump_json(
-                                candidate_output_path,
-                                {
-                                    "schema_version": 1,
-                                    "candidate_id": candidate_id,
-                                    "seed_case": seed_case["name"],
-                                    "seed_fixture_path": seed_case["path"],
-                                    "mutation_family": family,
-                                    "target_tail_index": target_index,
-                                    "donor_source_case": donor["source_case"],
-                                    "donor_source_index": donor["source_index"],
-                                    "baseline_tag": args.baseline_tag,
-                                    "fixed_tag": args.fixed_tag,
-                                    "baseline_observed": baseline_observed,
-                                    "fixed_observed": fixed_observed,
-                                    "differential_kind": kind,
-                                    "case": candidate_case,
-                                },
-                            )
-                            differentials.append(
-                                {
-                                    "candidate_id": candidate_id,
-                                    "seed_case": seed_case["name"],
-                                    "mutation_family": family,
-                                    "target_tail_index": target_index,
-                                    "donor_source_case": donor["source_case"],
-                                    "donor_source_index": donor["source_index"],
-                                    "baseline_observed": baseline_observed,
-                                    "fixed_observed": fixed_observed,
-                                    "differential_kind": kind,
-                                    "candidate_path": candidate_output_path.as_posix(),
-                                }
-                            )
-
-                            if len(differentials) >= args.max_differentials:
-                                break
-
-                        if processed_count >= args.max_candidates:
-                            break
-                    if len(differentials) >= args.max_differentials or processed_count >= args.max_candidates:
+                if (
+                    args.dry_run
+                    or baseline_state["status"] != "ready"
+                    or fixed_state["status"] != "ready"
+                ):
+                    if processed_count >= args.max_candidates:
                         break
-                if len(differentials) >= args.max_differentials or processed_count >= args.max_candidates:
+                    continue
+
+                baseline_observed = observe_candidate(
+                    temp_case_path=temp_case_path,
+                    script_path=script_path,
+                    python_executable=args.python_executable,
+                    tag_state=baseline_state,
+                )
+                fixed_observed = observe_candidate(
+                    temp_case_path=temp_case_path,
+                    script_path=script_path,
+                    python_executable=args.python_executable,
+                    tag_state=fixed_state,
+                )
+                executed_count += 1
+                family_summary[family]["executed_count"] += 1
+
+                if baseline_observed != fixed_observed:
+                    kind = differential_kind(
+                        baseline_observed=baseline_observed,
+                        fixed_observed=fixed_observed,
+                    )
+                    differential_count += 1
+                    family_summary[family]["differential_count"] += 1
+                    if kind == "baseline_accept_fixed_reject":
+                        desired_differential_count += 1
+
+                    candidate_output_path = candidate_dir / f"{candidate_id}.json"
+                    dump_json(
+                        candidate_output_path,
+                        {
+                            "schema_version": 1,
+                            "candidate_id": candidate_id,
+                            "seed_case": seed_case["name"],
+                            "seed_fixture_path": seed_case["path"],
+                            "seed_origin": seed_case["origin"],
+                            "seed_source_case": seed_case.get("source_case"),
+                            "seed_shape": seed_case["shape"],
+                            "mutation": mutation,
+                            "baseline_tag": args.baseline_tag,
+                            "fixed_tag": args.fixed_tag,
+                            "baseline_observed": baseline_observed,
+                            "fixed_observed": fixed_observed,
+                            "differential_kind": kind,
+                            "candidate_shape": candidate_shape,
+                            "case": candidate_case,
+                        },
+                    )
+                    differentials.append(
+                        {
+                            "candidate_id": candidate_id,
+                            "seed_case": seed_case["name"],
+                            "seed_origin": seed_case["origin"],
+                            "mutation_family": family,
+                            "baseline_observed": baseline_observed,
+                            "fixed_observed": fixed_observed,
+                            "differential_kind": kind,
+                            "candidate_shape": candidate_shape,
+                            "candidate_path": candidate_output_path.as_posix(),
+                        }
+                    )
+
+                    if len(differentials) >= args.max_differentials:
+                        break
+
+                if processed_count >= args.max_candidates:
                     break
             if len(differentials) >= args.max_differentials or processed_count >= args.max_candidates:
                 break
@@ -374,9 +579,10 @@ def build_report(args: argparse.Namespace) -> dict:
             {
                 "name": case["name"],
                 "path": case["path"],
-                "entry_count": case["entry_count"],
-                "unique_commitment_count": case["unique_commitment_count"],
-                "tail_positions": case["tail_positions"],
+                "origin": case["origin"],
+                "source_case": case.get("source_case"),
+                "synthetic_recipe": case.get("synthetic_recipe"),
+                "shape": case["shape"],
             }
             for case in seed_cases
         ],
@@ -387,6 +593,8 @@ def build_report(args: argparse.Namespace) -> dict:
         },
         "summary": {
             "seed_case_count": len(seed_cases),
+            "fixture_seed_case_count": len(fixture_seed_cases),
+            "synthetic_seed_case_count": len(synthetic_seed_cases),
             "donor_entry_count": len(donor_entries),
             "max_donors_considered": min(args.max_donors, len(donor_entries)),
             "candidate_count": len(seen_signatures),
@@ -396,9 +604,11 @@ def build_report(args: argparse.Namespace) -> dict:
             "differential_count": differential_count,
             "desired_differential_count": desired_differential_count,
         },
+        "family_summary": family_summary,
         "differentials": differentials,
         "notes": [
             "This search currently focuses on seeds where the buggy v2.1.4 challenge ignores one or more tail commitments.",
+            "Synthetic seeds duplicate an earlier valid entry into a later position to force an ignored unique tail commitment without needing an upstream fixture.",
             "A desired witness is baseline accept / fixed reject, because that would turn the weak binding bug into a replayable verifier differential.",
         ],
     }
@@ -472,6 +682,12 @@ def main() -> int:
         type=int,
         default=32,
         help="Stop after this many differentials have been written.",
+    )
+    parser.add_argument(
+        "--synthetic-seed-limit",
+        type=int,
+        default=128,
+        help="Maximum number of synthetic bug-shape seeds to derive from valid fixtures.",
     )
     parser.add_argument(
         "--force-rebuild",
