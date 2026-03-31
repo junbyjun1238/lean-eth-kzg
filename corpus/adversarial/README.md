@@ -1,6 +1,6 @@
 # Adversarial corpus
 
-Theorem-guided regression cases live here as plain, replayable artifacts.
+Regression cases live here as plain, replayable artifacts.
 
 The goal is to encode small witnesses that:
 
@@ -17,11 +17,11 @@ The goal is to encode small witnesses that:
 The first cases can be intentionally small malformed-input witnesses. They exercise the public
 normalization contract without requiring large blobs or fully cryptographic test vectors.
 
-Historical bug cases may begin as `draft` entries when the upstream release/PR provenance is
+Historical bug cases may begin as `draft` entries when the upstream release or pull request provenance is
 already known but the exact replayable bytes have not been vendored yet.
 
 Concrete upstream-imported cases should record the exact consensus-spec-tests tag and fixture path
 they came from so the FFI layer can replay the same bytes against pinned `c-kzg-4844` tags.
 
-Imported cases that only preserve the input shape of a bug family, but do not actually fail on a
-historical tag, should be described as coverage cases rather than historical bad-tag witnesses.
+Imported cases that preserve the input pattern of a bug family, but do not actually fail on an
+older tag, should be described as coverage cases rather than confirmed historical regressions.

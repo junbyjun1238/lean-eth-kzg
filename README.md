@@ -2,13 +2,15 @@
 
 Lean-centered specifications and regression tooling for the verifier-facing KZG boundary used by Ethereum Deneb/Fulu.
 
-The repository is currently spec-first: Lean fixes byte-level semantics, normalization, and
-transcript invariants first, while the replayable artifact layers are being filled in around
-that core.
+At present, Lean defines byte-level semantics, normalization, and transcript invariants.
+Replay tooling and test artifacts are built around those definitions.
 
 - Lean models raw-byte API semantics, normalization, and verifier invariants.
 - External harnesses compare those semantics against pinned `c-kzg-4844` tags.
-- Official vectors and Lean-guided adversarial corpora become replayable artifacts.
+- Official vectors and adversarial test cases are stored as replayable artifacts.
+
+For a detailed explanation of the cryptographic boundary used in this repository, see
+[`docs/crypto-boundary.md`](docs/crypto-boundary.md).
 
 ## Repository layout
 
@@ -41,13 +43,19 @@ The repository now includes:
 - a replay runner that resolves pinned `c-kzg-4844` checkouts and emits per-tag replay reports,
 - a GitHub Actions workflow that fetches pinned tags and runs the replay matrix on Linux.
 
-The main remaining gap is confirmation: this repository now has the replay-plan, checkout-fetch,
-runner, and CI wiring layers, but still needs a stronger deduplicated-commitment witness after
-the first Linux report on 2026-03-22 showed that the imported `not_sorted` fixture still passes
-on `c-kzg-4844 v2.1.4`.
+Current division of responsibility:
+
+- Lean owns the verifier-facing byte boundary and transcript normal form.
+- External cryptographic backends still own decode validity, subgroup checks, infinity checks,
+  field-element canonicality, and the final pairing-based predicate.
+
+The main remaining gaps are:
+
+- tightening the external cryptographic boundary into a more explicit Lean-side interface, and
+- continuing replay and corpus work where concrete historical witnesses are available.
 
 ## Immediate next steps
 
-1. Use the differential-search harness to synthesize or import a stronger deduplicated-commitment witness that actually fails on `c-kzg-4844 v2.1.4`.
+1. Turn the documented cryptographic boundary into explicit Lean-side predicates or interfaces.
 2. Implement a vector-normalization script for pinned official releases.
-3. Add compact bad-tag summaries for CI and README consumption.
+3. Continue replay and corpus work for bug classes with concrete historical witnesses.

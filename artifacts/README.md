@@ -15,15 +15,15 @@ The first stable artifact format should include, at minimum:
 - bug-class label,
 - per-tag expected outcome for pinned `c-kzg-4844` releases.
 
-Tracked bootstrap artifacts:
+Current tracked artifacts:
 
 - `adversarial-replay-plan.json`: deterministic expansion of adversarial cases across pinned tags.
 
-The next generated artifact is:
+Additional generated artifacts:
 
 - `adversarial-replay-report.json`: observed pass/fail/skip outcomes keyed by the same case and
   tag coordinates, plus checkout/build readiness details.
 - `dedup-search-report.json`: differential-search summary for candidate `verify_cell_kzg_proof_batch`
-  witnesses across `v2.1.4` and `v2.1.5`, including seed provenance, shape diagnostics, and
+  witnesses across `v2.1.4` and `v2.1.5`, including seed provenance, commitment-order summaries, and
   per-mutation-family counters.
 - `dedup-search-candidates/`: concrete candidate cases that exhibited differing behavior.

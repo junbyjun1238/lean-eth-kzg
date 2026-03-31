@@ -2,5 +2,4 @@
 
 Pinned official vectors, manifests, and provenance notes live here.
 
-This directory is for released artifacts and normalized metadata, not for ad hoc local downloads.
-
+This directory is for released artifacts and normalized metadata, not for temporary local downloads.

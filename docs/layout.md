@@ -10,7 +10,7 @@
 ## External artifacts
 
 - `corpus/official`: immutable manifests for archived or pinned upstream vectors.
-- `corpus/adversarial`: Lean-guided JSON/hex corpora designed to kill historical bad tags.
+- `corpus/adversarial`: JSON and hex test cases used to replay known regressions against older tags.
 - `scripts`: small adapters that turn upstream vectors into normalized local artifacts.
 - `ffi`: boundary harnesses that call public `c-kzg-4844` APIs without modeling C internals.
 - `artifacts`: generated reports, replay summaries, and CI outputs.
@@ -18,5 +18,13 @@
 
 ## Design rule
 
-Anything that smells like "prove the C internals" stays out of the Lean core and lives, if at all, behind a boundary harness. The Lean side should stay focused on verifier semantics and regression-relevant invariants.
+Work that would require modeling C internals stays outside the Lean core and, if needed, lives
+behind a boundary harness. The Lean side stays focused on verifier semantics and
+regression-relevant invariants.
 
+## Boundary note
+
+The repository's central design choice is to formalize the Ethereum verifier boundary before
+attempting a full KZG mathematics development. The Lean modules model public-byte semantics and
+transcript normal forms, while cryptographic decode and pairing validity remain outside the Lean
+core behind an explicit backend boundary. See `docs/crypto-boundary.md` for the full rationale.
