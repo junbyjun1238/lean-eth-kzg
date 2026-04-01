@@ -1,4 +1,5 @@
 import LeanEthKzg.Spec.Types
+import LeanEthKzg.Spec.Deneb
 
 namespace LeanEthKzg.Verifier
 
@@ -24,5 +25,27 @@ abbrev ProofSubgroupPredicate := ProofBytes -> Prop
 abbrev CommitmentNotInfinityPredicate := CommitmentBytes -> Prop
 
 abbrev ProofNotInfinityPredicate := ProofBytes -> Prop
+
+structure KzgProofBoundaryRequirements where
+  commitmentDecodes : CommitmentDecodePredicate
+  proofDecodes : ProofDecodePredicate
+  evaluationPointCanonical : FieldElementCanonicalPredicate
+  claimedValueCanonical : FieldElementCanonicalPredicate
+  commitmentInSubgroup : CommitmentSubgroupPredicate
+  proofInSubgroup : ProofSubgroupPredicate
+  commitmentNotInfinity : CommitmentNotInfinityPredicate
+  proofNotInfinity : ProofNotInfinityPredicate
+
+def KzgProofBoundaryRequirements.holdsFor
+    (requirements : KzgProofBoundaryRequirements)
+    (input : NormalizedKzgProofInput) : Prop :=
+  requirements.commitmentDecodes input.commitment /\
+  requirements.proofDecodes input.proof /\
+  requirements.evaluationPointCanonical input.evaluationPoint /\
+  requirements.claimedValueCanonical input.claimedValue /\
+  requirements.commitmentInSubgroup input.commitment /\
+  requirements.proofInSubgroup input.proof /\
+  requirements.commitmentNotInfinity input.commitment /\
+  requirements.proofNotInfinity input.proof
 
 end LeanEthKzg.Verifier
