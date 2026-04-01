@@ -7,6 +7,7 @@
 .tmp/
 plan.md
 review.md
+docs/*-rollout.md
 리뷰.md
 __pycache__/
 *.pyc
