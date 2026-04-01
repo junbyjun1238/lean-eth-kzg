@@ -2,6 +2,7 @@ import LeanEthKzg.Bytes
 import LeanEthKzg.Spec.Types
 import LeanEthKzg.Spec.Deneb
 import LeanEthKzg.Spec.Fulu
+import LeanEthKzg.Verifier.CryptoBoundary
 import LeanEthKzg.Verifier.API
 import LeanEthKzg.Verifier.Determinism
 import LeanEthKzg.Verifier.NormalForm
