@@ -1,3 +1,4 @@
+import LeanEthKzg.Verifier.CryptoBoundary
 import LeanEthKzg.Spec.Deneb
 import LeanEthKzg.Spec.Fulu
 
@@ -27,24 +28,6 @@ def NormalizationReport.ofTranscript
     normalizedInputCount,
     uniqueCommitmentCount
   }
-
-structure Backend where
-  verifyKzgProof : NormalizedKzgProofInput -> Bool
-  verifyBlobKzgProof : NormalizedBlobProofInput -> Bool
-  verifyBlobKzgProofBatch : NormalizedBlobBatchInput -> Bool
-  verifyCellKzgProofBatch : NormalizedCellBatchInput -> Bool
-
-def rejectAll : Backend where
-  verifyKzgProof := fun _ => false
-  verifyBlobKzgProof := fun _ => false
-  verifyBlobKzgProofBatch := fun _ => false
-  verifyCellKzgProofBatch := fun _ => false
-
-def acceptAll : Backend where
-  verifyKzgProof := fun _ => true
-  verifyBlobKzgProof := fun _ => true
-  verifyBlobKzgProofBatch := fun _ => true
-  verifyCellKzgProofBatch := fun _ => true
 
 def toDecision (value : Bool) : Decision :=
   if value then .accept else .reject

@@ -1,5 +1,6 @@
 import LeanEthKzg.Spec.Types
 import LeanEthKzg.Spec.Deneb
+import LeanEthKzg.Spec.Fulu
 
 namespace LeanEthKzg.Verifier
 
@@ -19,6 +20,10 @@ abbrev ProofDecodePredicate := ProofBytes -> Prop
 abbrev FieldElementCanonicalPredicate := FieldElementBytes -> Prop
 
 abbrev BlobFieldElementsCanonicalPredicate := BlobBytes -> Prop
+
+abbrev BlobBatchEntriesCanonicalPredicate := Array BlobBatchEntry -> Prop
+
+abbrev CellFieldElementsCanonicalPredicate := CellBytes -> Prop
 
 abbrev CommitmentSubgroupPredicate := CommitmentBytes -> Prop
 
@@ -50,6 +55,10 @@ def KzgProofBoundaryRequirements.holdsFor
   requirements.commitmentNotInfinity input.commitment /\
   requirements.proofNotInfinity input.proof
 
+structure KzgProofQuery where
+  normalizedInput : NormalizedKzgProofInput
+  transcript : TranscriptInput
+
 structure BlobProofBoundaryRequirements where
   blobFieldElementsCanonical : BlobFieldElementsCanonicalPredicate
   commitmentDecodes : CommitmentDecodePredicate
@@ -69,5 +78,67 @@ def BlobProofBoundaryRequirements.holdsFor
   requirements.proofInSubgroup input.proof /\
   requirements.commitmentNotInfinity input.commitment /\
   requirements.proofNotInfinity input.proof
+
+structure BlobBatchBoundaryRequirements where
+  entriesCanonical : BlobBatchEntriesCanonicalPredicate
+  commitmentDecodes : CommitmentDecodePredicate
+  proofDecodes : ProofDecodePredicate
+  commitmentInSubgroup : CommitmentSubgroupPredicate
+  proofInSubgroup : ProofSubgroupPredicate
+  commitmentNotInfinity : CommitmentNotInfinityPredicate
+  proofNotInfinity : ProofNotInfinityPredicate
+
+def BlobBatchBoundaryRequirements.holdsFor
+    (requirements : BlobBatchBoundaryRequirements)
+    (input : NormalizedBlobBatchInput) : Prop :=
+  requirements.entriesCanonical input.entries /\
+  (forall entry : BlobBatchEntry, entry ∈ input.entries ->
+    requirements.commitmentDecodes entry.commitment /\
+    requirements.proofDecodes entry.proof /\
+    requirements.commitmentInSubgroup entry.commitment /\
+    requirements.proofInSubgroup entry.proof /\
+    requirements.commitmentNotInfinity entry.commitment /\
+    requirements.proofNotInfinity entry.proof)
+
+structure CellBatchBoundaryRequirements where
+  cellFieldElementsCanonical : CellFieldElementsCanonicalPredicate
+  commitmentDecodes : CommitmentDecodePredicate
+  proofDecodes : ProofDecodePredicate
+  commitmentInSubgroup : CommitmentSubgroupPredicate
+  proofInSubgroup : ProofSubgroupPredicate
+  commitmentNotInfinity : CommitmentNotInfinityPredicate
+  proofNotInfinity : ProofNotInfinityPredicate
+
+def CellBatchBoundaryRequirements.holdsFor
+    (requirements : CellBatchBoundaryRequirements)
+    (input : NormalizedCellBatchInput) : Prop :=
+  (forall commitment : CommitmentBytes, commitment ∈ input.uniqueCommitments ->
+    requirements.commitmentDecodes commitment /\
+    requirements.commitmentInSubgroup commitment /\
+    requirements.commitmentNotInfinity commitment) /\
+  (forall cell : CellBytes, cell ∈ input.cells ->
+    requirements.cellFieldElementsCanonical cell) /\
+  (forall proof : ProofBytes, proof ∈ input.proofs ->
+    requirements.proofDecodes proof /\
+    requirements.proofInSubgroup proof /\
+    requirements.proofNotInfinity proof)
+
+structure Backend where
+  verifyKzgProof : NormalizedKzgProofInput -> Bool
+  verifyBlobKzgProof : NormalizedBlobProofInput -> Bool
+  verifyBlobKzgProofBatch : NormalizedBlobBatchInput -> Bool
+  verifyCellKzgProofBatch : NormalizedCellBatchInput -> Bool
+
+def rejectAll : Backend where
+  verifyKzgProof := fun _ => false
+  verifyBlobKzgProof := fun _ => false
+  verifyBlobKzgProofBatch := fun _ => false
+  verifyCellKzgProofBatch := fun _ => false
+
+def acceptAll : Backend where
+  verifyKzgProof := fun _ => true
+  verifyBlobKzgProof := fun _ => true
+  verifyBlobKzgProofBatch := fun _ => true
+  verifyCellKzgProofBatch := fun _ => true
 
 end LeanEthKzg.Verifier
