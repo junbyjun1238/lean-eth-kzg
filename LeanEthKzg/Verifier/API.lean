@@ -32,12 +32,24 @@ def NormalizationReport.ofTranscript
 def toDecision (value : Bool) : Decision :=
   if value then .accept else .reject
 
+def buildKzgProofQuery (input : NormalizedKzgProofInput) : KzgProofQuery :=
+  KzgProofQuery.ofNormalizedInput input
+
+def buildBlobProofQuery (input : NormalizedBlobProofInput) : BlobProofQuery :=
+  BlobProofQuery.ofNormalizedInput input
+
+def buildBlobBatchQuery (input : NormalizedBlobBatchInput) : BlobBatchQuery :=
+  BlobBatchQuery.ofNormalizedInput input
+
+def buildCellBatchQuery (input : NormalizedCellBatchInput) : CellBatchQuery :=
+  CellBatchQuery.ofNormalizedInput input
+
 def verifyNormalizedBlobKzgProof (backend : Backend) (input : NormalizedBlobProofInput) : Decision :=
-  toDecision (backend.verifyBlobKzgProof input)
+  toDecision (backend.verifyBlobKzgProof (buildBlobProofQuery input))
 
 def verifyNormalizedBlobKzgProofBatch (backend : Backend) (input : NormalizedBlobBatchInput) :
     Decision :=
-  toDecision (backend.verifyBlobKzgProofBatch input)
+  toDecision (backend.verifyBlobKzgProofBatch (buildBlobBatchQuery input))
 
 def verificationDecision (result : DecodeResult (Prod Decision NormalizationReport)) : Decision :=
   match result with
@@ -46,8 +58,8 @@ def verificationDecision (result : DecodeResult (Prod Decision NormalizationRepo
 
 def Backend.singletonBlobConsistent (backend : Backend) : Prop :=
   forall input : NormalizedBlobProofInput,
-    backend.verifyBlobKzgProof input =
-      backend.verifyBlobKzgProofBatch input.toSingletonBatch
+    backend.verifyBlobKzgProof (buildBlobProofQuery input) =
+      backend.verifyBlobKzgProofBatch (buildBlobBatchQuery input.toSingletonBatch)
 
 theorem verifyNormalizedBlobKzgProof_singletonBatchConsistency
     (backend : Backend)
@@ -61,19 +73,19 @@ theorem verifyNormalizedBlobKzgProof_singletonBatchConsistency
 def verifyKzgProof (backend : Backend) (input : KzgProofInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeKzgProofInput input
-  let transcript := kzgProofTranscript normalized
+  let query := buildKzgProofQuery normalized
   pure (
-    toDecision (backend.verifyKzgProof normalized),
-    NormalizationReport.ofTranscript .verifyKzgProof transcript 1
+    toDecision (backend.verifyKzgProof query),
+    NormalizationReport.ofTranscript .verifyKzgProof query.transcript 1
   )
 
 def verifyBlobKzgProof (backend : Backend) (input : BlobProofInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeBlobProofInput input
-  let transcript := blobProofTranscript normalized
+  let query := buildBlobProofQuery normalized
   pure (
-    toDecision (backend.verifyBlobKzgProof normalized),
-    NormalizationReport.ofTranscript .verifyBlobKzgProof transcript 1
+    toDecision (backend.verifyBlobKzgProof query),
+    NormalizationReport.ofTranscript .verifyBlobKzgProof query.transcript 1
   )
 
 def normalizeBlobBatchForVerification (input : BlobBatchInput) :
@@ -88,12 +100,12 @@ def normalizeBlobBatchForVerification (input : BlobBatchInput) :
 def verifyBlobKzgProofBatch (backend : Backend) (input : BlobBatchInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeBlobBatchForVerification input
-  let transcript := blobBatchTranscript normalized
+  let query := buildBlobBatchQuery normalized
   pure (
-    toDecision (backend.verifyBlobKzgProofBatch normalized),
+    toDecision (backend.verifyBlobKzgProofBatch query),
     NormalizationReport.ofTranscript
       .verifyBlobKzgProofBatch
-      transcript
+      query.transcript
       normalized.entries.size
   )
 
@@ -123,12 +135,12 @@ theorem verifyBlobKzgProof_singletonBatchConsistency
 def verifyCellKzgProofBatch (backend : Backend) (input : CellBatchInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
   let normalized <- normalizeCellBatchInput input
-  let transcript := cellBatchTranscript normalized
+  let query := buildCellBatchQuery normalized
   pure (
-    toDecision (backend.verifyCellKzgProofBatch normalized),
+    toDecision (backend.verifyCellKzgProofBatch query),
     NormalizationReport.ofTranscript
       .verifyCellKzgProofBatch
-      transcript
+      query.transcript
       normalized.cells.size
       normalized.uniqueCommitments.size
   )

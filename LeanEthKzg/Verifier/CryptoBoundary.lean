@@ -59,6 +59,12 @@ structure KzgProofQuery where
   normalizedInput : NormalizedKzgProofInput
   transcript : TranscriptInput
 
+def KzgProofQuery.ofNormalizedInput (input : NormalizedKzgProofInput) : KzgProofQuery :=
+  {
+    normalizedInput := input
+    transcript := kzgProofTranscript input
+  }
+
 structure BlobProofBoundaryRequirements where
   blobFieldElementsCanonical : BlobFieldElementsCanonicalPredicate
   commitmentDecodes : CommitmentDecodePredicate
@@ -78,6 +84,16 @@ def BlobProofBoundaryRequirements.holdsFor
   requirements.proofInSubgroup input.proof /\
   requirements.commitmentNotInfinity input.commitment /\
   requirements.proofNotInfinity input.proof
+
+structure BlobProofQuery where
+  normalizedInput : NormalizedBlobProofInput
+  transcript : TranscriptInput
+
+def BlobProofQuery.ofNormalizedInput (input : NormalizedBlobProofInput) : BlobProofQuery :=
+  {
+    normalizedInput := input
+    transcript := blobProofTranscript input
+  }
 
 structure BlobBatchBoundaryRequirements where
   entriesCanonical : BlobBatchEntriesCanonicalPredicate
@@ -99,6 +115,16 @@ def BlobBatchBoundaryRequirements.holdsFor
     requirements.proofInSubgroup entry.proof /\
     requirements.commitmentNotInfinity entry.commitment /\
     requirements.proofNotInfinity entry.proof)
+
+structure BlobBatchQuery where
+  normalizedInput : NormalizedBlobBatchInput
+  transcript : TranscriptInput
+
+def BlobBatchQuery.ofNormalizedInput (input : NormalizedBlobBatchInput) : BlobBatchQuery :=
+  {
+    normalizedInput := input
+    transcript := blobBatchTranscript input
+  }
 
 structure CellBatchBoundaryRequirements where
   cellFieldElementsCanonical : CellFieldElementsCanonicalPredicate
@@ -123,11 +149,21 @@ def CellBatchBoundaryRequirements.holdsFor
     requirements.proofInSubgroup proof /\
     requirements.proofNotInfinity proof)
 
+structure CellBatchQuery where
+  normalizedInput : NormalizedCellBatchInput
+  transcript : TranscriptInput
+
+def CellBatchQuery.ofNormalizedInput (input : NormalizedCellBatchInput) : CellBatchQuery :=
+  {
+    normalizedInput := input
+    transcript := cellBatchTranscript input
+  }
+
 structure Backend where
-  verifyKzgProof : NormalizedKzgProofInput -> Bool
-  verifyBlobKzgProof : NormalizedBlobProofInput -> Bool
-  verifyBlobKzgProofBatch : NormalizedBlobBatchInput -> Bool
-  verifyCellKzgProofBatch : NormalizedCellBatchInput -> Bool
+  verifyKzgProof : KzgProofQuery -> Bool
+  verifyBlobKzgProof : BlobProofQuery -> Bool
+  verifyBlobKzgProofBatch : BlobBatchQuery -> Bool
+  verifyCellKzgProofBatch : CellBatchQuery -> Bool
 
 def rejectAll : Backend where
   verifyKzgProof := fun _ => false
