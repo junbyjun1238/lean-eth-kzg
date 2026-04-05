@@ -56,19 +56,17 @@ The current project is divided as follows:
 2. Lean fixes the transcript shape and batch normal form for that normalized query.
 3. An external backend decides the remaining cryptographic predicate on that normalized query.
 
+The current Lean boundary modules now expose explicit requirement records and query types for
+all four verifier entry points.
+
 This means the repository is not yet a full formal proof of KZG.
 It is a formal specification of the Ethereum verifier boundary plus replayable regression tooling
 around real `c-kzg-4844` releases.
 
 ## Next refinement
 
-The next refinement is to make the current backend trust boundary more explicit in code, for
-example by naming predicates or interfaces for:
-
-- commitment decode success,
-- proof decode success,
-- field-element canonicality,
-- subgroup and point-at-infinity restrictions.
+The next refinement is to build more proofs and tooling on top of the explicit boundary types,
+including results that malformed raw inputs never construct cryptographic queries.
 
 ## Explicit non-goals
 

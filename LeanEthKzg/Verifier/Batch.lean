@@ -25,4 +25,12 @@ theorem singletonBlobBatchHasOneEntry (input : NormalizedBlobProofInput) :
     input.toSingletonBatch.entries.size = 1 := by
   rfl
 
+theorem singletonBlobQueryConsistency
+    (backend : Backend)
+    (h : backend.singletonBlobConsistent)
+    (input : NormalizedBlobProofInput) :
+    backend.verifyBlobKzgProof (buildBlobProofQuery input) =
+      backend.verifyBlobKzgProofBatch (buildBlobBatchQuery input.toSingletonBatch) := by
+  exact h input
+
 end LeanEthKzg.Verifier

@@ -62,6 +62,7 @@ Lean currently defines the public-input and transcript boundary:
 
 In code, that work mostly lives in:
 
+- `LeanEthKzg/Verifier/CryptoBoundary.lean`
 - `LeanEthKzg/Spec/Deneb.lean`
 - `LeanEthKzg/Spec/Fulu.lean`
 - `LeanEthKzg/Verifier/API.lean`
@@ -82,8 +83,19 @@ real curve and field decoding:
 
 In Lean, that boundary is represented by `LeanEthKzg.Verifier.Backend`.
 The current backend interface is intentionally small: Lean computes normalized
-inputs and transcript-facing metadata, and the backend returns the cryptographic
-accept or reject decision.
+inputs, builds explicit query objects, and the backend returns the cryptographic
+accept or reject decision on those queries.
+
+The main Lean names for that boundary are now:
+
+- `KzgProofBoundaryRequirements`
+- `BlobProofBoundaryRequirements`
+- `BlobBatchBoundaryRequirements`
+- `CellBatchBoundaryRequirements`
+- `KzgProofQuery`
+- `BlobProofQuery`
+- `BlobBatchQuery`
+- `CellBatchQuery`
 
 ## Why this split is useful
 
@@ -104,22 +116,17 @@ that can be checked against pinned `c-kzg-4844` tags and historical bug cases.
 
 The current trust model is:
 
-1. Lean defines the public verifier semantics up to a normalized cryptographic query.
-2. An external backend decides whether that normalized query is cryptographically valid.
+1. Lean defines the public verifier semantics up to an explicit normalized cryptographic query.
+2. An external backend decides whether that explicit query is cryptographically valid.
 3. Replay harnesses compare real `c-kzg-4844` releases against those Lean-facing expectations.
+
+Invalid raw inputs stop before query construction, so malformed bytes do not cross the
+cryptographic boundary.
 
 This is not an end-to-end formal proof of KZG.
 It is a verifier-boundary specification plus replayable regression tooling.
 
 ## Planned next step
 
-The next refinement is to make the cryptographic boundary more explicit in code
-by introducing named predicates or interfaces for items such as:
-
-- commitment decode success,
-- proof decode success,
-- field canonicality,
-- subgroup and infinity restrictions.
-
-That would still stop short of full pairing formalization, but it would make the
-Trusted Computing Base more explicit and visible inside Lean.
+The next refinement is to add more theorems and conformance-facing helpers on top of the
+explicit boundary already present in code.

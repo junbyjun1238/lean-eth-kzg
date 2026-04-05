@@ -44,6 +44,18 @@ def buildBlobBatchQuery (input : NormalizedBlobBatchInput) : BlobBatchQuery :=
 def buildCellBatchQuery (input : NormalizedCellBatchInput) : CellBatchQuery :=
   CellBatchQuery.ofNormalizedInput input
 
+def normalizeAndBuildKzgProofQuery (input : KzgProofInput) : DecodeResult KzgProofQuery := do
+  let normalized <- normalizeKzgProofInput input
+  pure (buildKzgProofQuery normalized)
+
+def normalizeAndBuildBlobProofQuery (input : BlobProofInput) : DecodeResult BlobProofQuery := do
+  let normalized <- normalizeBlobProofInput input
+  pure (buildBlobProofQuery normalized)
+
+def normalizeAndBuildCellBatchQuery (input : CellBatchInput) : DecodeResult CellBatchQuery := do
+  let normalized <- normalizeCellBatchInput input
+  pure (buildCellBatchQuery normalized)
+
 def verifyNormalizedBlobKzgProof (backend : Backend) (input : NormalizedBlobProofInput) : Decision :=
   toDecision (backend.verifyBlobKzgProof (buildBlobProofQuery input))
 
@@ -72,8 +84,7 @@ theorem verifyNormalizedBlobKzgProof_singletonBatchConsistency
 
 def verifyKzgProof (backend : Backend) (input : KzgProofInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
-  let normalized <- normalizeKzgProofInput input
-  let query := buildKzgProofQuery normalized
+  let query <- normalizeAndBuildKzgProofQuery input
   pure (
     toDecision (backend.verifyKzgProof query),
     NormalizationReport.ofTranscript .verifyKzgProof query.transcript 1
@@ -81,8 +92,7 @@ def verifyKzgProof (backend : Backend) (input : KzgProofInput) :
 
 def verifyBlobKzgProof (backend : Backend) (input : BlobProofInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
-  let normalized <- normalizeBlobProofInput input
-  let query := buildBlobProofQuery normalized
+  let query <- normalizeAndBuildBlobProofQuery input
   pure (
     toDecision (backend.verifyBlobKzgProof query),
     NormalizationReport.ofTranscript .verifyBlobKzgProof query.transcript 1
@@ -97,16 +107,19 @@ def normalizeBlobBatchForVerification (input : BlobBatchInput) :
   | none =>
       normalizeBlobBatchInput input
 
+def normalizeAndBuildBlobBatchQuery (input : BlobBatchInput) : DecodeResult BlobBatchQuery := do
+  let normalized <- normalizeBlobBatchForVerification input
+  pure (buildBlobBatchQuery normalized)
+
 def verifyBlobKzgProofBatch (backend : Backend) (input : BlobBatchInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
-  let normalized <- normalizeBlobBatchForVerification input
-  let query := buildBlobBatchQuery normalized
+  let query <- normalizeAndBuildBlobBatchQuery input
   pure (
     toDecision (backend.verifyBlobKzgProofBatch query),
     NormalizationReport.ofTranscript
       .verifyBlobKzgProofBatch
       query.transcript
-      normalized.entries.size
+      query.normalizedInput.entries.size
   )
 
 theorem normalizeBlobBatchForVerification_toSingletonBatch (input : BlobProofInput) :
@@ -125,24 +138,24 @@ theorem verifyBlobKzgProof_singletonBatchConsistency
     verificationDecision (verifyBlobKzgProof backend input) =
       verificationDecision (verifyBlobKzgProofBatch backend input.toSingletonBatch) := by
   unfold verificationDecision verifyBlobKzgProof verifyBlobKzgProofBatch
+  unfold normalizeAndBuildBlobProofQuery normalizeAndBuildBlobBatchQuery
   rw [normalizeBlobBatchForVerification_toSingletonBatch]
   cases hNorm : normalizeBlobProofInput input with
   | error err =>
       rfl
   | ok normalized =>
-      simpa using congrArg toDecision (h normalized)
+      simpa [buildBlobProofQuery, buildBlobBatchQuery] using congrArg toDecision (h normalized)
 
 def verifyCellKzgProofBatch (backend : Backend) (input : CellBatchInput) :
     DecodeResult (Prod Decision NormalizationReport) := do
-  let normalized <- normalizeCellBatchInput input
-  let query := buildCellBatchQuery normalized
+  let query <- normalizeAndBuildCellBatchQuery input
   pure (
     toDecision (backend.verifyCellKzgProofBatch query),
     NormalizationReport.ofTranscript
       .verifyCellKzgProofBatch
       query.transcript
-      normalized.cells.size
-      normalized.uniqueCommitments.size
+      query.normalizedInput.cells.size
+      query.normalizedInput.uniqueCommitments.size
   )
 
 end LeanEthKzg.Verifier

@@ -34,6 +34,7 @@ The repository now includes:
 - normalization functions for `verify_kzg_proof`, `verify_blob_kzg_proof`,
   `verify_blob_kzg_proof_batch`, and `verify_cell_kzg_proof_batch`,
 - stable dedup and transcript construction for Fulu cell-batch inputs,
+- explicit boundary records and query types for the verifier-facing cryptographic interface,
 - a backend interface that cleanly separates byte-level semantics from cryptographic checks,
 - normalization reports that carry API and transcript payload metadata for future case manifests
   and replay harnesses,
@@ -46,16 +47,18 @@ The repository now includes:
 Current division of responsibility:
 
 - Lean owns the verifier-facing byte boundary and transcript normal form.
+- Lean now models explicit query objects such as `KzgProofQuery`, `BlobProofQuery`,
+  `BlobBatchQuery`, and `CellBatchQuery`.
 - External cryptographic backends still own decode validity, subgroup checks, infinity checks,
   field-element canonicality, and the final pairing-based predicate.
 
 The main remaining gaps are:
 
-- tightening the external cryptographic boundary into a more explicit Lean-side interface, and
+- attaching more theorems and tooling to the explicit boundary interface now present in Lean, and
 - continuing replay and corpus work where concrete historical witnesses are available.
 
 ## Immediate next steps
 
-1. Turn the documented cryptographic boundary into explicit Lean-side predicates or interfaces.
+1. Prove more properties directly about the explicit query boundary, including invalid-input and conformance-facing lemmas.
 2. Implement a vector-normalization script for pinned official releases.
 3. Continue replay and corpus work for bug classes with concrete historical witnesses.
