@@ -1,5 +1,6 @@
 namespace LeanEthKzg
 
+/-- Shared byte-oriented definitions used across verifier-facing specs. -/
 abbrev Bytes := ByteArray
 
 instance : Inhabited Bytes where
@@ -9,9 +10,10 @@ instance : Repr Bytes where
   reprPrec xs _ :=
     repr xs.toList
 
-def byteCount (xs : Bytes) : Nat :=
-  xs.size
-
+/--
+Encode `value` as a big-endian byte array of exactly `width` bytes.
+Values larger than `256 ^ width - 1` are truncated to their low `width` bytes.
+-/
 def natToFixedWidthBE (width : Nat) (value : Nat) : Bytes :=
   Id.run do
     let mut out := ByteArray.empty
